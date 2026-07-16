@@ -1,228 +1,333 @@
-/* ============================================================
-   AIGYPT × AINA — Presentation Logic (Vanilla TS)
-   ============================================================ */
+/**
+ * AIGYPT × AINA — Presentation engine v2
+ * Keyboard-driven slide deck with fragment reveals, presenter timer, AINA chat animation.
+ */
 
-// ── State ────────────────────────────────────────────────────
-let currentSlideIndex = 0;
-let isAnimating = false;
-const TOTAL_SLIDES = 9;
-const ANIMATION_LOCK_MS = 700;
+// ─── State ────────────────────────────────────────────────
+let currentSlide = 0;
+let timerVisible = false;
+let timerStarted = false;
+let timerStart = 0;
+let timerInterval: ReturnType<typeof setInterval> | null = null;
+let chatPlayed = false;
+let chatTimeouts: ReturnType<typeof setTimeout>[] = [];
 
-// ── Elements ─────────────────────────────────────────────────
-const slidesContainer = document.getElementById('slides-container') as HTMLElement;
-const progressFill    = document.getElementById('progress-fill')    as HTMLElement;
-const dotsNav         = document.getElementById('dots-nav')         as HTMLElement;
-const dots            = Array.from(dotsNav.querySelectorAll('.dot')) as HTMLButtonElement[];
-const slides          = Array.from(document.querySelectorAll('.slide')) as HTMLElement[];
+// ─── DOM refs ─────────────────────────────────────────────
+const nav          = document.getElementById('main-nav') as HTMLElement;
+const progressBar  = document.getElementById('progress-bar') as HTMLElement;
+const timerEl      = document.getElementById('timer') as HTMLElement;
+const dotsNav      = document.getElementById('dots') as HTMLElement;
+const dots         = Array.from(dotsNav.querySelectorAll<HTMLButtonElement>('.dot'));
+const slides       = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
+const TOTAL        = slides.length;
+const AINA_SLIDE   = 8; // 0-indexed slide index of the AINA slide
 
-// ── Navigate to slide ─────────────────────────────────────────
-function navigateToSlide(index: number): void {
-  const clamped = Math.max(0, Math.min(TOTAL_SLIDES - 1, index));
-  if (clamped === currentSlideIndex && document.readyState === 'complete') return;
-  if (isAnimating) return;
+// ─── Fragment tracking ────────────────────────────────────
+// Each slide has a list of .fragment elements in DOM order.
+// fragmentState[i] = number revealed so far.
+const slideFragments: HTMLElement[][] = slides.map(s =>
+  Array.from(s.querySelectorAll<HTMLElement>('.fragment'))
+);
+const fragmentState: number[] = slides.map(() => 0);
 
-  currentSlideIndex = clamped;
-  isAnimating = true;
-  setTimeout(() => { isAnimating = false; }, ANIMATION_LOCK_MS);
+// Special: program-pair elements use display:contents, so we treat each
+// .program-pair div as a logical fragment group that wraps its rows.
+// The CSS handles visibility — when a .program-pair gets .revealed,
+// its children (rows) revert to visible because only the wrapper transitions.
+// (This works because we set opacity/transform on the .fragment itself.)
 
-  slides[currentSlideIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
-  updateProgress();
-  updateDots();
+// ─── Nav scrolled ─────────────────────────────────────────
+function handleScroll() {
+  if (window.scrollY > 20) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
 }
+window.addEventListener('scroll', handleScroll, { passive: true });
 
-// ── Progress bar ──────────────────────────────────────────────
-function updateProgress(): void {
-  const pct = TOTAL_SLIDES <= 1 ? 100 : (currentSlideIndex / (TOTAL_SLIDES - 1)) * 100;
-  progressFill.style.width = `${pct}%`;
-}
+// ─── Progress + dots ──────────────────────────────────────
+function updateUI() {
+  // Progress bar: 0 → 100% over all slides
+  const pct = TOTAL <= 1 ? 100 : (currentSlide / (TOTAL - 1)) * 100;
+  progressBar.style.width = `${pct}%`;
 
-// ── Dots ──────────────────────────────────────────────────────
-function updateDots(): void {
+  // Dots
   dots.forEach((dot, i) => {
-    const active = i === currentSlideIndex;
-    dot.classList.toggle('active', active);
-    dot.setAttribute('aria-current', active ? 'true' : 'false');
+    dot.classList.toggle('active', i === currentSlide);
   });
 }
 
-dots.forEach((dot) => {
-  dot.addEventListener('click', () => {
-    const idx = parseInt(dot.dataset.slide ?? '0', 10);
-    navigateToSlide(idx);
+// ─── Go to slide ──────────────────────────────────────────
+function goToSlide(idx: number, revealAllFragments = false) {
+  if (idx < 0 || idx >= TOTAL) return;
+  currentSlide = idx;
+
+  if (revealAllFragments) {
+    showAllFragments(idx);
+  }
+
+  slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  updateUI();
+
+  // AINA auto-play when arriving at AINA slide
+  if (idx === AINA_SLIDE && !chatPlayed) {
+    scheduleChat();
+  }
+}
+
+// ─── Fragments ────────────────────────────────────────────
+function revealNextFragment(slideIdx: number): boolean {
+  const frags = slideFragments[slideIdx];
+  const n = fragmentState[slideIdx];
+  if (n < frags.length) {
+    frags[n].classList.add('revealed');
+    fragmentState[slideIdx]++;
+    return true;
+  }
+  return false;
+}
+
+function showAllFragments(slideIdx: number) {
+  const frags = slideFragments[slideIdx];
+  frags.forEach(f => f.classList.add('revealed'));
+  fragmentState[slideIdx] = frags.length;
+}
+
+function hideAllFragments(slideIdx: number) {
+  const frags = slideFragments[slideIdx];
+  frags.forEach(f => f.classList.remove('revealed'));
+  fragmentState[slideIdx] = 0;
+}
+
+// ─── Advance (Space / ArrowDown / ArrowRight / PageDown) ──
+function advance() {
+  ensureTimerStarted();
+  const revealed = revealNextFragment(currentSlide);
+  if (!revealed) {
+    // All fragments done — go to next slide
+    if (currentSlide < TOTAL - 1) {
+      goToSlide(currentSlide + 1);
+    }
+  }
+}
+
+// ─── Back (ArrowUp / ArrowLeft / PageUp) ──────────────────
+function goBack() {
+  ensureTimerStarted();
+  if (currentSlide > 0) {
+    // Hide fragments on current slide so they re-animate if returning
+    hideAllFragments(currentSlide);
+    goToSlide(currentSlide - 1, true);
+  }
+}
+
+// ─── Timer ────────────────────────────────────────────────
+function ensureTimerStarted() {
+  if (!timerStarted) {
+    timerStarted = true;
+    timerStart = Date.now();
+    timerInterval = setInterval(tickTimer, 1000);
+    tickTimer();
+  }
+}
+
+function tickTimer() {
+  const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const ss = String(elapsed % 60).padStart(2, '0');
+  timerEl.textContent = `${mm}:${ss} / 30:00`;
+
+  timerEl.classList.remove('amber', 'red');
+  if (elapsed >= 1800) {
+    timerEl.classList.add('red');
+  } else if (elapsed >= 1500) {
+    timerEl.classList.add('amber');
+  }
+}
+
+function toggleTimer() {
+  timerVisible = !timerVisible;
+  timerEl.style.display = timerVisible ? 'block' : 'none';
+  if (timerVisible) {
+    ensureTimerStarted();
+  }
+}
+
+// ─── AINA chat animation ───────────────────────────────────
+const chatBubbles = {
+  u1:  document.getElementById('bubble-u1'),
+  t1:  document.getElementById('typing-1'),
+  a1:  document.getElementById('bubble-a1'),
+  u2:  document.getElementById('bubble-u2'),
+  t2:  document.getElementById('typing-2'),
+  a2:  document.getElementById('bubble-a2'),
+};
+
+function resetChat() {
+  Object.values(chatBubbles).forEach(el => {
+    el?.classList.remove('show');
   });
-});
+}
 
-// ── Keyboard navigation ───────────────────────────────────────
-document.addEventListener('keydown', (e: KeyboardEvent) => {
-  // Don't hijack when focus is inside a text input
-  const tag = (e.target as HTMLElement).tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+function clearChatTimeouts() {
+  chatTimeouts.forEach(t => clearTimeout(t));
+  chatTimeouts = [];
+}
 
-  switch (e.key) {
+function scheduleChat() {
+  chatPlayed = true;
+  clearChatTimeouts();
+  resetChat();
+
+  const seq: Array<() => void> = [
+    () => chatBubbles.u1?.classList.add('show'),
+    () => chatBubbles.t1?.classList.add('show'),
+    () => { chatBubbles.t1?.classList.remove('show'); chatBubbles.a1?.classList.add('show'); },
+    () => chatBubbles.u2?.classList.add('show'),
+    () => chatBubbles.t2?.classList.add('show'),
+    () => { chatBubbles.t2?.classList.remove('show'); chatBubbles.a2?.classList.add('show'); },
+  ];
+  const delays = [500, 900, 900, 700, 900, 900];
+
+  let elapsed = 0;
+  seq.forEach((fn, i) => {
+    elapsed += delays[i];
+    chatTimeouts.push(setTimeout(fn, elapsed));
+  });
+}
+
+function replayChat() {
+  chatPlayed = false;
+  clearChatTimeouts();
+  resetChat();
+  scheduleChat();
+}
+
+// ─── Keyboard handler ─────────────────────────────────────
+window.addEventListener('keydown', (e: KeyboardEvent) => {
+  // Don't capture inside inputs
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
+  switch (e.code) {
+    case 'Space':
     case 'ArrowDown':
     case 'ArrowRight':
-    case ' ':
     case 'PageDown':
       e.preventDefault();
-      navigateToSlide(currentSlideIndex + 1);
+      advance();
       break;
+
     case 'ArrowUp':
     case 'ArrowLeft':
     case 'PageUp':
       e.preventDefault();
-      navigateToSlide(currentSlideIndex - 1);
+      goBack();
       break;
+
     case 'Home':
       e.preventDefault();
-      navigateToSlide(0);
+      // Go to first slide, reset fragments
+      slides.forEach((_, i) => hideAllFragments(i));
+      currentSlide = 0;
+      slides[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      updateUI();
       break;
+
     case 'End':
       e.preventDefault();
-      navigateToSlide(TOTAL_SLIDES - 1);
+      // Go to last slide, show all its fragments
+      currentSlide = TOTAL - 1;
+      showAllFragments(currentSlide);
+      slides[currentSlide].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      updateUI();
       break;
-    case 'f':
-    case 'F':
+
+    case 'KeyF':
       e.preventDefault();
-      toggleFullscreen();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.().catch(() => {});
+      } else {
+        document.exitFullscreen?.().catch(() => {});
+      }
+      break;
+
+    case 'KeyT':
+      e.preventDefault();
+      toggleTimer();
+      break;
+
+    case 'KeyR':
+      e.preventDefault();
+      if (currentSlide === AINA_SLIDE) {
+        replayChat();
+      }
       break;
   }
 });
 
-// ── Fullscreen ────────────────────────────────────────────────
-function toggleFullscreen(): void {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(() => {});
-  } else {
-    document.exitFullscreen().catch(() => {});
-  }
-}
+// ─── Click on slide → advance ─────────────────────────────
+slides.forEach((slide, idx) => {
+  slide.addEventListener('click', (e) => {
+    // Ignore clicks on interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('a, button, .dot')) return;
 
-// ── Intersection Observer — track current slide ───────────────
-const slideObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting && entry.intersectionRatio >= 0.4) {
-      const idx = slides.indexOf(entry.target as HTMLElement);
-      if (idx !== -1 && idx !== currentSlideIndex) {
-        currentSlideIndex = idx;
-        updateProgress();
-        updateDots();
-      }
+    // Only advance if this is the currently active slide (desktop)
+    if (idx === currentSlide) {
+      advance();
     }
   });
-}, { threshold: 0.4 });
-
-slides.forEach((slide) => slideObserver.observe(slide));
-
-// ── Intersection Observer — animate items on entry ────────────
-const itemObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    const slide = entry.target as HTMLElement;
-    const items = Array.from(slide.querySelectorAll('.animate-item')) as HTMLElement[];
-
-    if (entry.isIntersecting) {
-      // Replay: first reset all items
-      items.forEach((item) => {
-        item.classList.remove('visible');
-      });
-      // Then stagger them in
-      items.forEach((item) => {
-        const delay = parseInt(item.dataset.delay ?? '0', 10);
-        setTimeout(() => {
-          item.classList.add('visible');
-        }, delay);
-      });
-
-      // AINA slide: trigger chat animation
-      if (slide.id === 'slide-8') {
-        triggerAinaChat();
-      }
-    } else {
-      // Reset when slide leaves view so it replays next time
-      items.forEach((item) => item.classList.remove('visible'));
-      if (slide.id === 'slide-8') {
-        resetAinaChat();
-      }
-    }
-  });
-}, { threshold: 0.3 });
-
-slides.forEach((slide) => itemObserver.observe(slide));
-
-// ── AINA Chat Animation ───────────────────────────────────────
-const ainaMessages   = Array.from(document.querySelectorAll('.msg')) as HTMLElement[];
-const typingIndicator = document.getElementById('typing-indicator') as HTMLElement;
-let ainaTimers: ReturnType<typeof setTimeout>[] = [];
-
-function resetAinaChat(): void {
-  ainaTimers.forEach(clearTimeout);
-  ainaTimers = [];
-  ainaMessages.forEach((m) => m.classList.remove('revealed'));
-  typingIndicator.classList.remove('visible');
-}
-
-function triggerAinaChat(): void {
-  resetAinaChat();
-
-  // Schedule each message: user messages appear instantly, AINA messages get a typing delay
-  const schedule: Array<{ msgIdx: number; showAt: number; typingBefore?: number }> = [
-    { msgIdx: 0, showAt: 500 },                        // user msg 1
-    { msgIdx: 1, showAt: 900, typingBefore: 800 },     // AINA reply 1 (typing 900-1700)
-    { msgIdx: 2, showAt: 2200 },                       // user msg 2
-    { msgIdx: 3, showAt: 2600, typingBefore: 2500 },   // AINA reply 2
-  ];
-
-  schedule.forEach(({ msgIdx, showAt, typingBefore }) => {
-    if (typingBefore !== undefined) {
-      const t1 = setTimeout(() => {
-        typingIndicator.classList.add('visible');
-      }, typingBefore);
-      ainaTimers.push(t1);
-    }
-    const t2 = setTimeout(() => {
-      typingIndicator.classList.remove('visible');
-      const el = ainaMessages[msgIdx];
-      if (el) el.classList.add('revealed');
-    }, showAt);
-    ainaTimers.push(t2);
-  });
-}
-
-// ── Scroll listener to sync progress + dots (fallback) ───────
-slidesContainer.addEventListener('scroll', () => {}, { passive: true });
-
-// Sync on native scroll (touch / trackpad)
-let scrollRAF: number | null = null;
-window.addEventListener('scroll', () => {
-  if (scrollRAF) cancelAnimationFrame(scrollRAF);
-  scrollRAF = requestAnimationFrame(() => {
-    const viewH = window.innerHeight;
-    let best = 0;
-    let bestVisible = -1;
-
-    slides.forEach((slide, i) => {
-      const rect = slide.getBoundingClientRect();
-      const visible = Math.min(rect.bottom, viewH) - Math.max(rect.top, 0);
-      if (visible > bestVisible) {
-        bestVisible = visible;
-        best = i;
-      }
-    });
-
-    if (best !== currentSlideIndex) {
-      currentSlideIndex = best;
-      updateProgress();
-      updateDots();
-    }
-  });
-}, { passive: true });
-
-// ── Initial state ─────────────────────────────────────────────
-updateProgress();
-updateDots();
-
-// Trigger visible on first slide immediately
-const firstSlideItems = Array.from(slides[0].querySelectorAll('.animate-item')) as HTMLElement[];
-firstSlideItems.forEach((item) => {
-  const delay = parseInt(item.dataset.delay ?? '0', 10);
-  setTimeout(() => item.classList.add('visible'), delay + 100);
 });
+
+// ─── Dot clicks ───────────────────────────────────────────
+dots.forEach((dot, i) => {
+  dot.addEventListener('click', () => {
+    // Show all fragments on slides we're skipping past
+    if (i > currentSlide) {
+      for (let j = currentSlide; j < i; j++) {
+        showAllFragments(j);
+      }
+    }
+    goToSlide(i);
+  });
+});
+
+// ─── Nav link clicks ──────────────────────────────────────
+document.querySelectorAll<HTMLElement>('[data-goto]').forEach(el => {
+  el.addEventListener('click', (e) => {
+    const idx = parseInt(el.dataset.goto ?? '0', 10);
+    if (isNaN(idx)) return;
+    e.preventDefault();
+    if (idx > currentSlide) {
+      for (let j = currentSlide; j < idx; j++) showAllFragments(j);
+    }
+    goToSlide(idx);
+  });
+});
+
+// ─── IntersectionObserver (track slide on manual scroll) ──
+let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+      const idx = slides.indexOf(entry.target as HTMLElement);
+      if (idx !== -1 && idx !== currentSlide) {
+        currentSlide = idx;
+        updateUI();
+        // On mobile, all frags already visible via CSS.
+        // On desktop, trigger AINA chat when sliding to it manually.
+        if (idx === AINA_SLIDE && !chatPlayed) {
+          scheduleChat();
+        }
+      }
+    }
+  });
+}, { threshold: 0.5 });
+
+slides.forEach(slide => observer.observe(slide));
+
+// ─── Init ─────────────────────────────────────────────────
+updateUI();
+handleScroll();
