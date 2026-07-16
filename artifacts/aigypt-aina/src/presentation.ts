@@ -1,155 +1,79 @@
 /**
- * AIGYPT × AINA — Presentation engine v3
- * 13 slides · 4 chapters · fragment reveals · gallery + lightbox · AINA chat
+ * AIGYPT × AINA — Presentation engine v2
+ * Keyboard-driven slide deck with fragment reveals, presenter timer, AINA chat animation.
  */
 
-// ─── Chapter mapping ──────────────────────────────────────
-const SLIDE_CHAPTERS = [1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4]; // 13 slides, 0-indexed
-const CHAPTER_NAMES  = ['', 'BAB 1 · CERITA KITA', 'BAB 2 · AIGYPT', 'BAB 3 · AINA', 'BAB 4 · AJAKAN'];
-const AINA_SLIDE     = 10; // 0-indexed index of "Kenalin AINA" slide
-
-// ─── Gallery data ─────────────────────────────────────────
-const GALLERY_PHOTOS = [
-  { src: 'images/batch-0-kelas.jpg',    caption: 'Batch 0 · Kelas perdana',     batch: '0' },
-  { src: 'images/batch-0-ruangan.jpg',  caption: 'Batch 0 · Ruangan penuh',     batch: '0' },
-  { src: 'images/batch-1-aula.jpg',     caption: 'Batch 1 · Aula penuh',        batch: '1' },
-  { src: 'images/batch-1-komunitas.jpg',caption: 'Batch 1 · Komunitas',          batch: '1' },
-  { src: 'images/batch-1-tim.jpg',      caption: 'Batch 1 · Tim inti',          batch: '1' },
-  { src: 'images/batch-3-kelas.jpg',    caption: 'Batch 3 · Sesi kelas',        batch: '3' },
-  { src: 'images/batch-3-mentoring.jpg',caption: 'Batch 3 · Mentoring',         batch: '3' },
-  { src: 'images/batch-3-demoday.jpg',  caption: 'Batch 3 · Platform & Demo Day', batch: '3' },
-];
-
 // ─── State ────────────────────────────────────────────────
-let currentSlide   = 0;
-let timerVisible   = false;
-let timerStarted   = false;
-let timerStart     = 0;
+let currentSlide = 0;
+let timerVisible = false;
+let timerStarted = false;
+let timerStart = 0;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
-let chatPlayed     = false;
+let chatPlayed = false;
 let chatTimeouts: ReturnType<typeof setTimeout>[] = [];
-let lightboxOpen   = false;
-let lightboxIndex  = 0; // index within current filtered array
-let galleryFilter  = 'all';
-let touchStartX    = 0;
 
-// ─── DOM ──────────────────────────────────────────────────
-const nav           = document.getElementById('main-nav')     as HTMLElement;
-const progressBar   = document.getElementById('progress-bar') as HTMLElement;
-const timerEl       = document.getElementById('timer')        as HTMLElement;
-const chapterLabel  = document.getElementById('chapter-label')as HTMLElement;
-const dotsNav       = document.getElementById('dots')         as HTMLElement;
-const dots          = Array.from(dotsNav.querySelectorAll<HTMLButtonElement>('.dot'));
-const slides        = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
-const lightboxEl    = document.getElementById('lightbox')     as HTMLElement;
-const lightboxImg   = document.getElementById('lightbox-img') as HTMLImageElement;
-const lightboxCaption = document.getElementById('lightbox-caption') as HTMLElement;
-const galleryGrid   = document.getElementById('gallery-grid') as HTMLElement;
-const TOTAL         = slides.length;
+// ─── DOM refs ─────────────────────────────────────────────
+const nav          = document.getElementById('main-nav') as HTMLElement;
+const progressBar  = document.getElementById('progress-bar') as HTMLElement;
+const timerEl      = document.getElementById('timer') as HTMLElement;
+const dotsNav      = document.getElementById('dots') as HTMLElement;
+const dots         = Array.from(dotsNav.querySelectorAll<HTMLButtonElement>('.dot'));
+const slides       = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
+const TOTAL        = slides.length;
+const AINA_SLIDE   = 8; // 0-indexed slide index of the AINA slide
 
 // ─── Fragment tracking ────────────────────────────────────
+// Each slide has a list of .fragment elements in DOM order.
+// fragmentState[i] = number revealed so far.
 const slideFragments: HTMLElement[][] = slides.map(s =>
   Array.from(s.querySelectorAll<HTMLElement>('.fragment'))
 );
 const fragmentState: number[] = slides.map(() => 0);
 
-// ─── Build gallery ────────────────────────────────────────
-function buildGallery() {
-  GALLERY_PHOTOS.forEach((photo, i) => {
-    const tile = document.createElement('div');
-    tile.className = 'gallery-tile';
-    tile.dataset.batch = photo.batch;
-    tile.dataset.index = String(i);
-    tile.setAttribute('role', 'listitem');
-    tile.innerHTML = `
-      <img src="${photo.src}" alt="${photo.caption}" loading="lazy" />
-      <div class="gallery-caption">${photo.caption}</div>
-    `;
-    tile.addEventListener('click', () => openLightbox(i));
-    galleryGrid.appendChild(tile);
-  });
+// Special: program-pair elements use display:contents, so we treat each
+// .program-pair div as a logical fragment group that wraps its rows.
+// The CSS handles visibility — when a .program-pair gets .revealed,
+// its children (rows) revert to visible because only the wrapper transitions.
+// (This works because we set opacity/transform on the .fragment itself.)
+
+// ─── Nav scrolled ─────────────────────────────────────────
+function handleScroll() {
+  if (window.scrollY > 20) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
 }
+window.addEventListener('scroll', handleScroll, { passive: true });
 
-// ─── Gallery filter ───────────────────────────────────────
-function filterGallery(batch: string) {
-  galleryFilter = batch;
-  document.querySelectorAll<HTMLElement>('.filter-chip').forEach(chip => {
-    chip.classList.toggle('active', chip.dataset.batch === batch);
-    chip.setAttribute('aria-pressed', String(chip.dataset.batch === batch));
-  });
-  document.querySelectorAll<HTMLElement>('.gallery-tile').forEach(tile => {
-    const matches = batch === 'all' || tile.dataset.batch === batch;
-    tile.classList.toggle('hidden', !matches);
-  });
-}
-
-function getFilteredIndices(): number[] {
-  return GALLERY_PHOTOS
-    .map((p, i) => ({ p, i }))
-    .filter(({ p }) => galleryFilter === 'all' || p.batch === galleryFilter)
-    .map(({ i }) => i);
-}
-
-// ─── Lightbox ─────────────────────────────────────────────
-function openLightbox(photoIndex: number) {
-  const filtered = getFilteredIndices();
-  const pos = filtered.indexOf(photoIndex);
-  lightboxIndex = pos >= 0 ? pos : 0;
-  lightboxOpen = true;
-  refreshLightboxPhoto();
-  lightboxEl.setAttribute('aria-hidden', 'false');
-  lightboxEl.classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeLightbox() {
-  lightboxOpen = false;
-  lightboxEl.setAttribute('aria-hidden', 'true');
-  lightboxEl.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function refreshLightboxPhoto() {
-  const filtered = getFilteredIndices();
-  if (!filtered.length) return;
-  lightboxIndex = ((lightboxIndex % filtered.length) + filtered.length) % filtered.length;
-  const photo = GALLERY_PHOTOS[filtered[lightboxIndex]];
-  lightboxImg.src = photo.src;
-  lightboxImg.alt = photo.caption;
-  lightboxCaption.textContent = photo.caption;
-}
-
-function lightboxPrev() { lightboxIndex--; refreshLightboxPhoto(); }
-function lightboxNext() { lightboxIndex++; refreshLightboxPhoto(); }
-
-// ─── Nav scroll ───────────────────────────────────────────
-function handleBodyScroll() {
-  nav.classList.toggle('scrolled', window.scrollY > 10);
-}
-window.addEventListener('scroll', handleBodyScroll, { passive: true });
-
-// ─── UI update ────────────────────────────────────────────
+// ─── Progress + dots ──────────────────────────────────────
 function updateUI() {
-  // Progress bar
+  // Progress bar: 0 → 100% over all slides
   const pct = TOTAL <= 1 ? 100 : (currentSlide / (TOTAL - 1)) * 100;
   progressBar.style.width = `${pct}%`;
 
   // Dots
-  dots.forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
-
-  // Chapter label
-  const chapter = SLIDE_CHAPTERS[currentSlide];
-  chapterLabel.textContent = CHAPTER_NAMES[chapter] ?? '';
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('active', i === currentSlide);
+  });
 }
 
 // ─── Go to slide ──────────────────────────────────────────
-function goToSlide(idx: number, revealAll = false) {
+function goToSlide(idx: number, revealAllFragments = false) {
   if (idx < 0 || idx >= TOTAL) return;
   currentSlide = idx;
-  if (revealAll) showAllFragments(idx);
+
+  if (revealAllFragments) {
+    showAllFragments(idx);
+  }
+
   slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
   updateUI();
-  if (idx === AINA_SLIDE && !chatPlayed) scheduleChat();
+
+  // AINA auto-play when arriving at AINA slide
+  if (idx === AINA_SLIDE && !chatPlayed) {
+    scheduleChat();
+  }
 }
 
 // ─── Fragments ────────────────────────────────────────────
@@ -165,26 +89,34 @@ function revealNextFragment(slideIdx: number): boolean {
 }
 
 function showAllFragments(slideIdx: number) {
-  slideFragments[slideIdx].forEach(f => f.classList.add('revealed'));
-  fragmentState[slideIdx] = slideFragments[slideIdx].length;
+  const frags = slideFragments[slideIdx];
+  frags.forEach(f => f.classList.add('revealed'));
+  fragmentState[slideIdx] = frags.length;
 }
 
 function hideAllFragments(slideIdx: number) {
-  slideFragments[slideIdx].forEach(f => f.classList.remove('revealed'));
+  const frags = slideFragments[slideIdx];
+  frags.forEach(f => f.classList.remove('revealed'));
   fragmentState[slideIdx] = 0;
 }
 
-// ─── Advance / Back ───────────────────────────────────────
+// ─── Advance (Space / ArrowDown / ArrowRight / PageDown) ──
 function advance() {
   ensureTimerStarted();
-  if (!revealNextFragment(currentSlide)) {
-    if (currentSlide < TOTAL - 1) goToSlide(currentSlide + 1);
+  const revealed = revealNextFragment(currentSlide);
+  if (!revealed) {
+    // All fragments done — go to next slide
+    if (currentSlide < TOTAL - 1) {
+      goToSlide(currentSlide + 1);
+    }
   }
 }
 
+// ─── Back (ArrowUp / ArrowLeft / PageUp) ──────────────────
 function goBack() {
   ensureTimerStarted();
   if (currentSlide > 0) {
+    // Hide fragments on current slide so they re-animate if returning
     hideAllFragments(currentSlide);
     goToSlide(currentSlide - 1, true);
   }
@@ -205,28 +137,37 @@ function tickTimer() {
   const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
   const ss = String(elapsed % 60).padStart(2, '0');
   timerEl.textContent = `${mm}:${ss} / 30:00`;
-  timerEl.classList.toggle('amber', elapsed >= 1500 && elapsed < 1800);
-  timerEl.classList.toggle('red',   elapsed >= 1800);
+
+  timerEl.classList.remove('amber', 'red');
+  if (elapsed >= 1800) {
+    timerEl.classList.add('red');
+  } else if (elapsed >= 1500) {
+    timerEl.classList.add('amber');
+  }
 }
 
 function toggleTimer() {
   timerVisible = !timerVisible;
   timerEl.style.display = timerVisible ? 'block' : 'none';
-  if (timerVisible) ensureTimerStarted();
+  if (timerVisible) {
+    ensureTimerStarted();
+  }
 }
 
-// ─── AINA chat ────────────────────────────────────────────
+// ─── AINA chat animation ───────────────────────────────────
 const chatBubbles = {
-  u1: document.getElementById('bubble-u1'),
-  t1: document.getElementById('typing-1'),
-  a1: document.getElementById('bubble-a1'),
-  u2: document.getElementById('bubble-u2'),
-  t2: document.getElementById('typing-2'),
-  a2: document.getElementById('bubble-a2'),
+  u1:  document.getElementById('bubble-u1'),
+  t1:  document.getElementById('typing-1'),
+  a1:  document.getElementById('bubble-a1'),
+  u2:  document.getElementById('bubble-u2'),
+  t2:  document.getElementById('typing-2'),
+  a2:  document.getElementById('bubble-a2'),
 };
 
 function resetChat() {
-  Object.values(chatBubbles).forEach(el => el?.classList.remove('show'));
+  Object.values(chatBubbles).forEach(el => {
+    el?.classList.remove('show');
+  });
 }
 
 function clearChatTimeouts() {
@@ -239,16 +180,20 @@ function scheduleChat() {
   clearChatTimeouts();
   resetChat();
 
-  const seq: [number, () => void][] = [
-    [500,  () => chatBubbles.u1?.classList.add('show')],
-    [1400, () => chatBubbles.t1?.classList.add('show')],
-    [2300, () => { chatBubbles.t1?.classList.remove('show'); chatBubbles.a1?.classList.add('show'); }],
-    [3000, () => chatBubbles.u2?.classList.add('show')],
-    [3900, () => chatBubbles.t2?.classList.add('show')],
-    [4800, () => { chatBubbles.t2?.classList.remove('show'); chatBubbles.a2?.classList.add('show'); }],
+  const seq: Array<() => void> = [
+    () => chatBubbles.u1?.classList.add('show'),
+    () => chatBubbles.t1?.classList.add('show'),
+    () => { chatBubbles.t1?.classList.remove('show'); chatBubbles.a1?.classList.add('show'); },
+    () => chatBubbles.u2?.classList.add('show'),
+    () => chatBubbles.t2?.classList.add('show'),
+    () => { chatBubbles.t2?.classList.remove('show'); chatBubbles.a2?.classList.add('show'); },
   ];
-  seq.forEach(([delay, fn]) => {
-    chatTimeouts.push(setTimeout(fn, delay));
+  const delays = [500, 900, 900, 700, 900, 900];
+
+  let elapsed = 0;
+  seq.forEach((fn, i) => {
+    elapsed += delays[i];
+    chatTimeouts.push(setTimeout(fn, elapsed));
   });
 }
 
@@ -259,39 +204,30 @@ function replayChat() {
   scheduleChat();
 }
 
-// ─── Keyboard ─────────────────────────────────────────────
+// ─── Keyboard handler ─────────────────────────────────────
 window.addEventListener('keydown', (e: KeyboardEvent) => {
+  // Don't capture inside inputs
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
-
-  // Lightbox mode: suspend slide navigation
-  if (lightboxOpen) {
-    switch (e.code) {
-      case 'Escape':     e.preventDefault(); closeLightbox(); break;
-      case 'ArrowLeft':  e.preventDefault(); lightboxPrev();  break;
-      case 'ArrowRight': e.preventDefault(); lightboxNext();  break;
-    }
-    return;
-  }
 
   switch (e.code) {
     case 'Space':
     case 'ArrowDown':
     case 'ArrowRight':
+    case 'PageDown':
       e.preventDefault();
       advance();
       break;
 
     case 'ArrowUp':
     case 'ArrowLeft':
+    case 'PageUp':
       e.preventDefault();
       goBack();
       break;
 
-    case 'PageDown': e.preventDefault(); advance();  break;
-    case 'PageUp':   e.preventDefault(); goBack();   break;
-
     case 'Home':
       e.preventDefault();
+      // Go to first slide, reset fragments
       slides.forEach((_, i) => hideAllFragments(i));
       currentSlide = 0;
       slides[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -300,6 +236,7 @@ window.addEventListener('keydown', (e: KeyboardEvent) => {
 
     case 'End':
       e.preventDefault();
+      // Go to last slide, show all its fragments
       currentSlide = TOTAL - 1;
       showAllFragments(currentSlide);
       slides[currentSlide].scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -322,32 +259,41 @@ window.addEventListener('keydown', (e: KeyboardEvent) => {
 
     case 'KeyR':
       e.preventDefault();
-      if (currentSlide === AINA_SLIDE) replayChat();
+      if (currentSlide === AINA_SLIDE) {
+        replayChat();
+      }
       break;
   }
 });
 
-// ─── Slide click → advance ────────────────────────────────
+// ─── Click on slide → advance ─────────────────────────────
 slides.forEach((slide, idx) => {
   slide.addEventListener('click', (e) => {
-    if (lightboxOpen) return;
+    // Ignore clicks on interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('a, button, .gallery-tile, .filter-chip, .lightbox')) return;
-    if (idx === currentSlide) advance();
+    if (target.closest('a, button, .dot')) return;
+
+    // Only advance if this is the currently active slide (desktop)
+    if (idx === currentSlide) {
+      advance();
+    }
   });
 });
 
 // ─── Dot clicks ───────────────────────────────────────────
 dots.forEach((dot, i) => {
   dot.addEventListener('click', () => {
+    // Show all fragments on slides we're skipping past
     if (i > currentSlide) {
-      for (let j = currentSlide; j < i; j++) showAllFragments(j);
+      for (let j = currentSlide; j < i; j++) {
+        showAllFragments(j);
+      }
     }
     goToSlide(i);
   });
 });
 
-// ─── Nav & data-goto links ────────────────────────────────
+// ─── Nav link clicks ──────────────────────────────────────
 document.querySelectorAll<HTMLElement>('[data-goto]').forEach(el => {
   el.addEventListener('click', (e) => {
     const idx = parseInt(el.dataset.goto ?? '0', 10);
@@ -360,30 +306,9 @@ document.querySelectorAll<HTMLElement>('[data-goto]').forEach(el => {
   });
 });
 
-// ─── Gallery filter chips ─────────────────────────────────
-document.querySelectorAll<HTMLElement>('.filter-chip').forEach(chip => {
-  chip.setAttribute('aria-pressed', chip.classList.contains('active') ? 'true' : 'false');
-  chip.addEventListener('click', () => filterGallery(chip.dataset.batch ?? 'all'));
-});
+// ─── IntersectionObserver (track slide on manual scroll) ──
+let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// ─── Lightbox controls ────────────────────────────────────
-document.querySelector('.lightbox-close')?.addEventListener('click', closeLightbox);
-document.querySelector('.lightbox-prev')?.addEventListener('click', lightboxPrev);
-document.querySelector('.lightbox-next')?.addEventListener('click', lightboxNext);
-lightboxEl.addEventListener('click', (e) => {
-  if (e.target === lightboxEl) closeLightbox();
-});
-
-// Lightbox swipe (mobile)
-lightboxEl.addEventListener('touchstart', (e) => {
-  touchStartX = e.touches[0].clientX;
-}, { passive: true });
-lightboxEl.addEventListener('touchend', (e) => {
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 50) { dx > 0 ? lightboxPrev() : lightboxNext(); }
-});
-
-// ─── IntersectionObserver (manual scroll tracking) ────────
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
@@ -391,7 +316,11 @@ const observer = new IntersectionObserver((entries) => {
       if (idx !== -1 && idx !== currentSlide) {
         currentSlide = idx;
         updateUI();
-        if (idx === AINA_SLIDE && !chatPlayed) scheduleChat();
+        // On mobile, all frags already visible via CSS.
+        // On desktop, trigger AINA chat when sliding to it manually.
+        if (idx === AINA_SLIDE && !chatPlayed) {
+          scheduleChat();
+        }
       }
     }
   });
@@ -400,6 +329,5 @@ const observer = new IntersectionObserver((entries) => {
 slides.forEach(slide => observer.observe(slide));
 
 // ─── Init ─────────────────────────────────────────────────
-buildGallery();
 updateUI();
-handleBodyScroll();
+handleScroll();

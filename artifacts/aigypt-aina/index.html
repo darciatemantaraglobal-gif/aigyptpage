@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AIGYPT × AINA — Update Skills. Upgrade Life. AI for Masisir.</title>
-  <meta name="description" content="AIGYPT adalah komunitas belajar AI pertama untuk Masisir. AINA adalah asisten pintar Masisir — karya pertama dari visi 2026." />
+  <meta name="description" content="AIGYPT adalah komunitas & program pelatihan AI pertama untuk Masisir — mahasiswa Indonesia di Mesir. AINA adalah asisten pintar Masisir, produk pertama dari visi 2026." />
   <meta property="og:title" content="AIGYPT × AINA — Update Skills. Upgrade Life. AI for Masisir." />
-  <meta property="og:description" content="AIGYPT adalah komunitas belajar AI pertama untuk Masisir. AINA adalah asisten pintar Masisir." />
+  <meta property="og:description" content="AIGYPT adalah komunitas & program pelatihan AI pertama untuk Masisir — mahasiswa Indonesia di Mesir. AINA adalah asisten pintar Masisir, produk pertama dari visi 2026." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#7C3AED" />
   <link rel="icon" type="image/png" href="images/logo-aigypt.png" />
@@ -18,329 +18,362 @@
 <body>
 
 <!-- Progress bar -->
-<div id="progress-bar"></div>
-
-<!-- Chapter label — top center -->
-<div id="chapter-label" aria-live="polite" aria-atomic="true">BAB 1 · CERITA KITA</div>
-
-<!-- Presenter timer -->
-<div id="timer" aria-live="polite">00:00 / 30:00</div>
+<div id="progress-bar" role="progressbar" aria-label="Progres presentasi"></div>
 
 <!-- Fixed nav -->
 <nav id="main-nav">
   <a class="nav-brand" href="#slide-1" data-goto="0" aria-label="AIGYPT — ke awal">
-    <img src="images/logo-aigypt.png" alt="AIGYPT" />
+    <img src="images/logo-aigypt.png" alt="AIGYPT logo" />
     <span>AIGYPT</span>
   </a>
   <ul class="nav-links">
-    <li><a href="#slide-3" data-goto="2">Cerita</a></li>
-    <li><a href="#slide-6" data-goto="5">AIGYPT</a></li>
-    <li><a href="#slide-8" data-goto="7">Galeri</a></li>
-    <li><a href="#slide-11" data-goto="10">AINA</a></li>
+    <li><a href="#slide-3" data-goto="2">Kenapa</a></li>
+    <li><a href="#slide-4" data-goto="3">Visi</a></li>
+    <li><a href="#slide-5" data-goto="4">Perjalanan</a></li>
+    <li><a href="#slide-8" data-goto="7">Program</a></li>
+    <li><a href="#slide-9" data-goto="8">AINA</a></li>
   </ul>
   <a class="nav-cta" href="https://wa.me/6281311506025" target="_blank" rel="noopener noreferrer">Gabung →</a>
 </nav>
 
-<!-- Slide dots — grouped by chapter -->
+<!-- Presenter timer -->
+<div id="timer" aria-live="polite" aria-atomic="true">00:00 / 30:00</div>
+
+<!-- Slide dots -->
 <nav id="dots" aria-label="Navigasi slide">
-  <!-- BAB 1 -->
-  <button class="dot active" data-slide="0" aria-label="Slide 1 — Sampul"></button>
-  <button class="dot" data-slide="1" aria-label="Slide 2 — Bab 1"></button>
-  <button class="dot" data-slide="2" aria-label="Slide 3 — Jujur-jujuran"></button>
-  <button class="dot" data-slide="3" aria-label="Slide 4 — Apa itu AI"></button>
-  <div class="dot-gap" role="separator"></div>
-  <!-- BAB 2 -->
-  <button class="dot" data-slide="4" aria-label="Slide 5 — Bab 2"></button>
-  <button class="dot" data-slide="5" aria-label="Slide 6 — Kenalin AIGYPT"></button>
-  <button class="dot" data-slide="6" aria-label="Slide 7 — Perjalanan"></button>
-  <button class="dot" data-slide="7" aria-label="Slide 8 — Galeri"></button>
-  <button class="dot" data-slide="8" aria-label="Slide 9 — Yang dipelajari"></button>
-  <div class="dot-gap" role="separator"></div>
-  <!-- BAB 3 -->
-  <button class="dot" data-slide="9"  aria-label="Slide 10 — Pembuka AINA"></button>
-  <button class="dot" data-slide="10" aria-label="Slide 11 — Kenalin AINA"></button>
-  <button class="dot" data-slide="11" aria-label="Slide 12 — Apa aja bisa ditanya"></button>
-  <div class="dot-gap" role="separator"></div>
-  <!-- BAB 4 -->
-  <button class="dot" data-slide="12" aria-label="Slide 13 — Penutup"></button>
+  <button class="dot active" data-slide="0" aria-label="Slide 1 — Pembuka"></button>
+  <button class="dot" data-slide="1" aria-label="Slide 2 — Agenda"></button>
+  <button class="dot" data-slide="2" aria-label="Slide 3 — Masalah"></button>
+  <button class="dot" data-slide="3" aria-label="Slide 4 — Visi"></button>
+  <button class="dot" data-slide="4" aria-label="Slide 5 — Batch 0"></button>
+  <button class="dot" data-slide="5" aria-label="Slide 6 — Batch 1"></button>
+  <button class="dot" data-slide="6" aria-label="Slide 7 — Batch 3"></button>
+  <button class="dot" data-slide="7" aria-label="Slide 8 — Program"></button>
+  <button class="dot" data-slide="8" aria-label="Slide 9 — AINA"></button>
+  <button class="dot" data-slide="9" aria-label="Slide 10 — Penutup"></button>
 </nav>
 
-<!-- Lightbox -->
-<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Foto galeri" aria-hidden="true">
-  <button class="lightbox-close" aria-label="Tutup">✕</button>
-  <button class="lightbox-prev" aria-label="Foto sebelumnya">&#8249;</button>
-  <button class="lightbox-next" aria-label="Foto berikutnya">&#8250;</button>
-  <figure class="lightbox-figure">
-    <img id="lightbox-img" src="" alt="" />
-    <figcaption id="lightbox-caption"></figcaption>
-  </figure>
-</div>
-
-<!-- ========================= SLIDES ========================= -->
+<!-- ============================= SLIDES ============================= -->
 <main id="slides">
 
-  <!-- SLIDE 1 — SAMPUL -->
+  <!-- SLIDE 1 — PEMBUKA -->
   <section class="slide slide--hero" id="slide-1" data-slide="0">
     <div class="slide-inner text-center">
       <img src="images/logo-aigypt.png" alt="AIGYPT" class="hero-logo" />
-      <p class="eyebrow">AIGYPT × AINA · Untuk Masisir</p>
+      <p class="eyebrow">AIGYPT × AINA · Profil Komunitas</p>
       <h1 class="hero-headline">
         Update Skills. Upgrade Life.<br />
         <span class="gradient-text">AI for Masisir.</span>
       </h1>
-      <p class="hero-lead">Malam ini, kita cerita tentang sebuah komunitas — dan sebuah karya — yang lahir dari keseharian Masisir.</p>
+      <p class="hero-lead">AI bukan masa depan — AI adalah kenyataan. Dan sekarang, Masisir gak cuma jadi penonton: kita ikut main di dalamnya.</p>
       <div class="hero-chip">Dibawakan oleh Daru — Founder AIGYPT</div>
       <p class="hero-hint">TEKAN SPASI UNTUK MULAI ↓</p>
     </div>
-    <div class="time-label">±2 mnt</div>
+    <div class="segment-label">SEGMEN 1 · ±2 MENIT</div>
   </section>
 
-  <!-- SLIDE 2 — DIVIDER BAB 1 -->
-  <section class="slide slide--divider" id="slide-2" data-slide="1">
-    <div class="slide-inner text-center">
-      <div class="divider-num gradient-text">01</div>
-      <h2 class="divider-title">Cerita Kita</h2>
-      <p class="divider-lead">Mulai dari yang paling dekat: keseharian kita sendiri.</p>
+  <!-- SLIDE 2 — AGENDA -->
+  <section class="slide" id="slide-2" data-slide="1">
+    <div class="slide-inner">
+      <p class="eyebrow">30 Menit ke Depan</p>
+      <h2 class="agenda-title">Perjalanan kita malam ini.</h2>
+      <ol class="agenda-list">
+        <li class="agenda-row fragment">
+          <span class="agenda-num">1</span>
+          <span class="agenda-topic">Kenapa AIGYPT ada</span>
+          <span class="agenda-dur">5 mnt</span>
+        </li>
+        <li class="agenda-row fragment">
+          <span class="agenda-num">2</span>
+          <span class="agenda-topic">Satu visi, dua babak</span>
+          <span class="agenda-dur">4 mnt</span>
+        </li>
+        <li class="agenda-row fragment">
+          <span class="agenda-num">3</span>
+          <span class="agenda-topic">Perjalanan Batch 0 → 3</span>
+          <span class="agenda-dur">6 mnt</span>
+        </li>
+        <li class="agenda-row fragment">
+          <span class="agenda-num">4</span>
+          <span class="agenda-topic">Apa yang dipelajari</span>
+          <span class="agenda-dur">4 mnt</span>
+        </li>
+        <li class="agenda-row fragment">
+          <span class="agenda-num">5</span>
+          <span class="agenda-topic">Kenalin: AINA</span>
+          <span class="agenda-dur">5 mnt</span>
+        </li>
+        <li class="agenda-row fragment">
+          <span class="agenda-num">6</span>
+          <span class="agenda-topic">Ajakan &amp; kolaborasi</span>
+          <span class="agenda-dur">3 mnt</span>
+        </li>
+      </ol>
     </div>
-    <div class="time-label">±7 mnt</div>
+    <div class="segment-label">SEGMEN 1 · ±1 MENIT</div>
   </section>
 
-  <!-- SLIDE 3 — JUJUR-JUJURAN -->
+  <!-- SLIDE 3 — MASALAH -->
   <section class="slide" id="slide-3" data-slide="2">
     <div class="slide-inner">
-      <h2 class="slide-title">Sebelum mulai, jujur-jujuran dulu.</h2>
-      <div class="jujur-list">
-        <div class="jujur-row fragment">
-          <span class="jujur-emoji" aria-hidden="true">🙋</span>
-          <p>Siapa yang catatannya numpuk, tapi gak pernah sempat dibuka lagi?</p>
+      <p class="eyebrow">01 · Kenapa AIGYPT Ada</p>
+      <h2 class="problem-title">Dunia berubah lebih cepat dari yang kita bayangkan.</h2>
+      <p class="problem-sub">Teknologi melesat, tuntutan makin tinggi — tapi mahasiswa Indonesia di Mesir masih mengandalkan cara-cara lama.</p>
+      <div class="problem-cards">
+        <div class="problem-card fragment">
+          <p class="problem-card-label">Akademisi</p>
+          <p class="problem-card-text">Catatan tercecer, hafalan tidak terstruktur, susah cari referensi.</p>
         </div>
-        <div class="jujur-row fragment">
-          <span class="jujur-emoji" aria-hidden="true">🙋</span>
-          <p>Siapa yang begadang bukan karena belajar — tapi karena bikin laporan?</p>
+        <div class="problem-card fragment">
+          <p class="problem-card-label">Organisator</p>
+          <p class="problem-card-text">Laporan, proposal &amp; notulen manual. Sibuk, tapi tidak produktif.</p>
         </div>
-        <div class="jujur-row fragment">
-          <span class="jujur-emoji" aria-hidden="true">🙋</span>
-          <p>Siapa yang bisnisnya jalan, tapi capek jawab chat pembeli satu-satu?</p>
+        <div class="problem-card fragment">
+          <p class="problem-card-label">Pengusaha</p>
+          <p class="problem-card-text">Promosi manual &amp; gak konsisten. Bingung bikin iklan menarik.</p>
         </div>
-        <blockquote class="jujur-punchline fragment">
-          Tenang. Kita semua sama. Dan malam ini, kita bahas jalan keluarnya.
-        </blockquote>
+        <div class="problem-card fragment">
+          <p class="problem-card-label">Kreator</p>
+          <p class="problem-card-text">Mentok inspirasi. Riset, desain, posting — semua sendiri.</p>
+        </div>
       </div>
+      <blockquote class="problem-quote fragment">
+        AI bukan sekadar tren. Kalau dipahami, AI mengubah total cara kita belajar, bekerja, berorganisasi — bahkan membangun penghasilan.
+      </blockquote>
     </div>
-    <div class="time-label">±3 mnt</div>
+    <div class="segment-label">SEGMEN 2 · ±5 MENIT</div>
   </section>
 
-  <!-- SLIDE 4 — APA ITU AI -->
+  <!-- SLIDE 4 — VISI -->
   <section class="slide" id="slide-4" data-slide="3">
     <div class="slide-inner">
-      <p class="eyebrow">Sederhananya Begini</p>
-      <h2 class="slide-title">Sebenarnya, apa sih AI itu?</h2>
-      <div class="ai-explain">
-        <div class="ai-block fragment">
-          <p>Bayangkan punya asisten pribadi yang bisa diajak ngobrol. Dia bisa bantu merangkum catatan, menyusun jadwal, menulis draf laporan, sampai membuat desain promosi — dalam hitungan detik.</p>
+      <p class="eyebrow">02 · Arah Gerak</p>
+      <h2 class="visi-title">Satu visi, dua babak.</h2>
+      <div class="visi-cards">
+        <div class="visi-card fragment">
+          <div class="visi-badge done">✓ Berjalan</div>
+          <div class="visi-year">2025</div>
+          <h3 class="visi-card-title">Kenalkan</h3>
+          <p class="visi-card-text">Memperkenalkan penggunaan AI di lingkungan Masisir dalam kehidupan sehari-hari: belajar lebih terstruktur, organisasi lebih efisien, bisnis lebih hidup.</p>
         </div>
-        <div class="ai-block ai-block--punch fragment">
-          <p>AI bukan pengganti manusia. AI itu alat — seperti kalkulator, tapi untuk ide, tulisan, dan pekerjaan. Dan kendalinya tetap di tangan kita.</p>
+        <div class="visi-card fragment">
+          <div class="visi-badge next">▶ Babak Berikutnya</div>
+          <div class="visi-year">2026</div>
+          <h3 class="visi-card-title">Karyakan</h3>
+          <p class="visi-card-text">Mengajak Masisir menghasilkan produk solusi dari masalah yang dialami sehari-hari. Dari pengguna jadi pembuat — dan bukti pertamanya sudah lahir: AINA.</p>
         </div>
       </div>
     </div>
-    <div class="time-label">±2 mnt</div>
+    <div class="segment-label">SEGMEN 3 · ±4 MENIT</div>
   </section>
 
-  <!-- SLIDE 5 — DIVIDER BAB 2 -->
-  <section class="slide slide--divider" id="slide-5" data-slide="4">
-    <div class="slide-inner text-center">
-      <div class="divider-num gradient-text">02</div>
-      <h2 class="divider-title">AIGYPT</h2>
-      <p class="divider-lead">Komunitas belajar AI pertama untuk Masisir.</p>
+  <!-- SLIDE 5 — BATCH 0 -->
+  <section class="slide" id="slide-5" data-slide="4">
+    <div class="slide-inner">
+      <div class="batch-pill">Batch 0</div>
+      <h2 class="batch-title">Titik nol: AI untuk Revolusi Masisir.</h2>
+      <p class="batch-copy">Kelas perdana yang membuka semuanya — mindset AI &amp; kode etik untuk Masisir pertama kali dibangun, keraguan dijawab, pro-kontra dibedah. Ruangan penuh, dan satu hal jadi jelas: Masisir siap.</p>
+      <div class="photo-grid-2">
+        <div class="photo-item">
+          <img src="images/batch-0-kelas.jpg" alt="Batch 0 — Kelas perdana AIGYPT" loading="lazy" />
+          <div class="photo-caption">Batch 0 · Kelas Perdana</div>
+        </div>
+        <div class="photo-item">
+          <img src="images/batch-0-ruangan.jpg" alt="Batch 0 — Ruangan penuh peserta" loading="lazy" />
+          <div class="photo-caption">Batch 0 · Ruangan Penuh</div>
+        </div>
+      </div>
     </div>
-    <div class="time-label">±11 mnt</div>
+    <div class="segment-label">SEGMEN 4 · ±2 MENIT</div>
   </section>
 
-  <!-- SLIDE 6 — KENALIN AIGYPT -->
+  <!-- SLIDE 6 — BATCH 1 -->
   <section class="slide" id="slide-6" data-slide="5">
     <div class="slide-inner">
-      <h2 class="slide-title">Kenalin: <span class="gradient-text">AIGYPT.</span></h2>
-      <p class="slide-sub">Komunitas belajar AI pertama untuk Masisir — mahasiswa Indonesia di Mesir. Tempat belajar teknologi dengan bahasa sehari-hari, dari nol, bareng-bareng.</p>
-      <div class="pillar-cards">
-        <div class="pillar-card fragment">
-          <h3 class="pillar-label">Belajar Bareng</h3>
-          <p class="pillar-text">Kelas &amp; modul dari nol. Gak perlu latar belakang IT — yang penting mau mencoba.</p>
+      <div class="batch-pill">Batch 1</div>
+      <h2 class="batch-title">Skala membesar: dari kelas jadi komunitas.</h2>
+      <p class="batch-copy">Antusiasme meledak. Peserta datang dari berbagai kalangan, materi masuk ke tools praktis untuk keseharian — dan AIGYPT mulai terasa bukan sekadar kelas, tapi komunitas belajar bersama.</p>
+      <div class="photo-grid-3">
+        <div class="photo-item">
+          <img src="images/batch-1-aula.jpg" alt="Batch 1 — Aula penuh peserta" loading="lazy" />
+          <div class="photo-caption">Aula Penuh</div>
         </div>
-        <div class="pillar-card fragment">
-          <h3 class="pillar-label">Praktik Langsung</h3>
-          <p class="pillar-text">Bukan teori. Langsung dipakai untuk kuliah, organisasi, dan bisnis besok pagi.</p>
+        <div class="photo-item">
+          <img src="images/batch-1-komunitas.jpg" alt="Batch 1 — Komunitas AIGYPT" loading="lazy" />
+          <div class="photo-caption">Komunitas</div>
         </div>
-        <div class="pillar-card fragment">
-          <h3 class="pillar-label">Tumbuh Bersama</h3>
-          <p class="pillar-text">Komunitas, showcase karya, dan sertifikat. Belajar paling awet itu yang ditemani.</p>
+        <div class="photo-item portrait">
+          <img src="images/batch-1-tim.jpg" alt="Batch 1 — Tim inti AIGYPT" loading="lazy" />
+          <div class="photo-caption">Tim Inti</div>
         </div>
       </div>
-      <p class="visi-line fragment">Visi kami sederhana: 2025 mengenalkan AI dalam keseharian Masisir — 2026 mengajak Masisir membangun karya dari masalahnya sendiri.</p>
     </div>
-    <div class="time-label">±3 mnt</div>
+    <div class="segment-label">SEGMEN 4 · ±2 MENIT</div>
   </section>
 
-  <!-- SLIDE 7 — PERJALANAN (Timeline) -->
+  <!-- SLIDE 7 — BATCH 3 -->
   <section class="slide" id="slide-7" data-slide="6">
     <div class="slide-inner">
-      <p class="eyebrow">Jejak yang Sudah Ditempuh</p>
-      <h2 class="slide-title">Dari titik nol sampai berkarya.</h2>
-      <div class="timeline">
-        <div class="timeline-card fragment">
-          <div class="timeline-step">Batch 0</div>
-          <h3 class="timeline-label">Titik Nol</h3>
-          <p class="timeline-text">Kelas perdana. Membangun cara pandang yang sehat tentang AI &amp; adab memakainya. Ruangan penuh.</p>
+      <div class="batch-pill">Batch 3</div>
+      <h2 class="batch-title">Dari belajar ke berkarya.</h2>
+      <p class="batch-copy">Babak baru menuju visi 2026. Peserta gak cuma belajar pakai AI — mereka membangun karya dari masalah sehari-hari, lewat platform belajar milik AIGYPT sendiri: dari ide, blueprint, rilis-rusak-perbaiki, sampai Demo Day.</p>
+      <div class="photo-grid-3">
+        <div class="photo-item">
+          <img src="images/batch-3-kelas.jpg" alt="Batch 3 — Sesi kelas" loading="lazy" />
+          <div class="photo-caption">Sesi Kelas</div>
         </div>
-        <div class="timeline-card fragment">
-          <div class="timeline-step">Batch 1</div>
-          <h3 class="timeline-label">Jadi Komunitas</h3>
-          <p class="timeline-text">Peserta datang dari berbagai kalangan. Dari kelas, tumbuh jadi komunitas belajar bersama.</p>
+        <div class="photo-item portrait">
+          <img src="images/batch-3-mentoring.jpg" alt="Batch 3 — Sesi mentoring" loading="lazy" />
+          <div class="photo-caption">Mentoring</div>
         </div>
-        <div class="timeline-card fragment">
-          <div class="timeline-step">Batch 3</div>
-          <h3 class="timeline-label">Mulai Berkarya</h3>
-          <p class="timeline-text">Peserta membangun karya dari masalah sehari-hari — sampai tampil di Demo Day.</p>
+        <div class="photo-item">
+          <img src="images/batch-3-demoday.jpg" alt="Batch 3 — Platform & Demo Day" loading="lazy" />
+          <div class="photo-caption">Platform &amp; Demo Day</div>
         </div>
       </div>
-      <p class="timeline-hint fragment">Lihat momen-momennya di galeri berikut →</p>
     </div>
-    <div class="time-label">±3 mnt</div>
+    <div class="segment-label">SEGMEN 4 · ±2 MENIT</div>
   </section>
 
-  <!-- SLIDE 8 — GALERI -->
-  <section class="slide slide--gallery" id="slide-8" data-slide="7">
+  <!-- SLIDE 8 — PROGRAM -->
+  <section class="slide" id="slide-8" data-slide="7">
     <div class="slide-inner">
-      <p class="eyebrow">Momen-Momen AIGYPT</p>
-      <h2 class="slide-title">Galeri perjalanan.</h2>
-      <div class="gallery-filters" role="group" aria-label="Filter galeri">
-        <button class="filter-chip active" data-batch="all">Semua</button>
-        <button class="filter-chip" data-batch="0">Batch 0</button>
-        <button class="filter-chip" data-batch="1">Batch 1</button>
-        <button class="filter-chip" data-batch="3">Batch 3</button>
-      </div>
-      <div class="gallery-grid" id="gallery-grid" role="list"></div>
-    </div>
-    <div class="time-label">±2 mnt</div>
-  </section>
-
-  <!-- SLIDE 9 — YANG DIPELAJARI -->
-  <section class="slide" id="slide-9" data-slide="8">
-    <div class="slide-inner">
-      <p class="eyebrow">Di Kelas AIGYPT</p>
-      <h2 class="slide-title">Yang dipelajari — dan langsung kepakai.</h2>
+      <p class="eyebrow">04 · Apa yang Dipelajari</p>
+      <h2 class="program-title">Step by step menuju hidup lebih mudah dengan AI.</h2>
       <div class="program-grid">
+        <!-- Fragment 1: rows 01–02 -->
         <div class="program-pair fragment">
-          <div class="program-item">
+          <div class="program-row">
             <span class="program-num">01</span>
             <div>
-              <p class="program-name">Cara pandang &amp; adab ber-AI</p>
-              <p class="program-desc">AI sebagai alat bantu, bukan pengganti guru &amp; ilmu.</p>
+              <p class="program-name">Mindset AI &amp; Kode Etik</p>
+              <p class="program-desc">AI sebagai alat bantu, bukan pengganti guru &amp; adab keilmuan.</p>
             </div>
           </div>
-          <div class="program-item">
+          <div class="program-row">
             <span class="program-num">02</span>
             <div>
-              <p class="program-name">Ngobrol dengan AI (prompting)</p>
-              <p class="program-desc">Cara bertanya yang benar biar jawabannya benar.</p>
+              <p class="program-name">ChatGPT &amp; Prompting Dasar</p>
+              <p class="program-desc">Nanya yang bener biar jawabannya bener.</p>
             </div>
           </div>
         </div>
+        <!-- Fragment 2: rows 03–04 -->
         <div class="program-pair fragment">
-          <div class="program-item">
+          <div class="program-row">
             <span class="program-num">03</span>
             <div>
-              <p class="program-name">Desain tanpa harus jago desain</p>
-              <p class="program-desc">Konten &amp; poster menarik dalam hitungan menit.</p>
+              <p class="program-name">Canva AI &amp; Konten Cerdas</p>
+              <p class="program-desc">Desain menarik tanpa harus jago desain dulu.</p>
             </div>
           </div>
-          <div class="program-item">
+          <div class="program-row">
             <span class="program-num">04</span>
             <div>
-              <p class="program-name">Hidup lebih teratur</p>
-              <p class="program-desc">Catatan rapi, jadwal jelas, hafalan terjadwal.</p>
+              <p class="program-name">Notion AI &amp; Manajemen Hidup</p>
+              <p class="program-desc">Catatan rapi, jadwal teratur, hidup terkendali.</p>
             </div>
           </div>
         </div>
+        <!-- Fragment 3: rows 05–06 -->
         <div class="program-pair fragment">
-          <div class="program-item">
+          <div class="program-row">
             <span class="program-num">05</span>
             <div>
-              <p class="program-name">AI untuk organisasi &amp; bisnis</p>
-              <p class="program-desc">Proposal, laporan, promosi, balas chat otomatis.</p>
+              <p class="program-name">AI untuk Bisnis &amp; Organisasi</p>
+              <p class="program-desc">Proposal, laporan, promosi, auto-respond.</p>
             </div>
           </div>
-          <div class="program-item">
+          <div class="program-row">
             <span class="program-num">06</span>
             <div>
-              <p class="program-name">Showcase karya + sertifikat</p>
-              <p class="program-desc">Pulang bawa karya nyata, bukan cuma ilmu.</p>
+              <p class="program-name">Showcase Proyek + Sertifikasi</p>
+              <p class="program-desc">Karya nyata + sertifikat eksklusif.</p>
             </div>
           </div>
         </div>
       </div>
-      <p class="program-note fragment">Terbuka untuk semua kalangan — yang fokus ngaji, aktivis, pebisnis, sampai kreator.</p>
+      <p class="program-note fragment">Terbuka untuk semua kalangan — mahasiswa S1–S2 Al-Azhar, aktivis organisasi, pebisnis, freelancer &amp; kreator.</p>
     </div>
-    <div class="time-label">±3 mnt</div>
+    <div class="segment-label">SEGMEN 5 · ±4 MENIT</div>
   </section>
 
-  <!-- SLIDE 10 — PEMBUKA BAB 3 (dramatic reveal) -->
-  <section class="slide slide--reveal" id="slide-10" data-slide="9">
-    <div class="slide-inner text-center">
-      <p class="reveal-text fragment">Dari komunitas ini, lahir sebuah karya.</p>
-      <div class="reveal-aina fragment">
-        <img
-          src="images/logo-aina.png"
-          alt="AINA"
-          class="reveal-aina-logo"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-        />
-        <div class="reveal-aina-fallback" style="display:none" aria-hidden="true">AI</div>
-        <p class="reveal-aina-tagline">Dibuat oleh Masisir, untuk Masisir.</p>
-      </div>
-    </div>
-    <div class="time-label">±1 mnt</div>
-  </section>
-
-  <!-- SLIDE 11 — KENALIN AINA -->
-  <section class="slide" id="slide-11" data-slide="10">
+  <!-- SLIDE 9 — AINA -->
+  <section class="slide" id="slide-9" data-slide="8">
     <div class="slide-inner">
       <div class="aina-layout">
         <!-- Left column -->
         <div class="aina-left">
-          <p class="eyebrow">Karya Pertama · Visi 2026 Jadi Nyata</p>
-          <h2 class="aina-title">Kenalin: <span class="gradient-text">AINA.</span></h2>
-          <p class="aina-sub">AINA adalah asisten pintar untuk Masisir. Cukup tanya — seperti chat ke teman — dan AINA bantu jawab urusan kuliah, dokumen, sampai kehidupan sehari-hari di Mesir.</p>
+          <div class="aina-logo-wrap">
+            <img
+              src="images/logo-aina.png"
+              alt="AINA"
+              class="aina-logo-img"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <div class="aina-logo-fallback" style="display:none" aria-hidden="true">AI</div>
+          </div>
+          <p class="eyebrow">05 · Produk — Visi 2026 Jadi Nyata</p>
+          <h2 class="aina-title">Kenalin, <span class="gradient-text">AINA.</span></h2>
+          <p class="aina-sub">Asisten pintar Masisir. Dibangun dari masalah sehari-hari Masisir, oleh Masisir — bukti bahwa kita bukan cuma pengguna AI, tapi pembuatnya.</p>
+          <ul class="aina-features">
+            <li class="aina-feature fragment">
+              <div class="aina-feature-dot" aria-hidden="true"></div>
+              <div>
+                <p class="aina-feature-name">Administrasi &amp; birokrasi</p>
+                <p class="aina-feature-desc">Urusan kampus, dokumen, izin tinggal.</p>
+              </div>
+            </li>
+            <li class="aina-feature fragment">
+              <div class="aina-feature-dot" aria-hidden="true"></div>
+              <div>
+                <p class="aina-feature-name">Teman akademik</p>
+                <p class="aina-feature-desc">Belajar, rangkuman, muroja'ah.</p>
+              </div>
+            </li>
+            <li class="aina-feature fragment">
+              <div class="aina-feature-dot" aria-hidden="true"></div>
+              <div>
+                <p class="aina-feature-name">Kehidupan di Mesir</p>
+                <p class="aina-feature-desc">Visa, kurs, transportasi, tips Kairo.</p>
+              </div>
+            </li>
+          </ul>
           <div class="aina-note fragment">
             🔑 Akses AINA akan dibagikan langsung melalui tenant masing-masing — tinggal pakai, tanpa ribet.
           </div>
         </div>
+
         <!-- Right column — chat mockup -->
         <div class="aina-right">
-          <div class="phone-mockup" id="chat-mockup">
+          <div class="phone-mockup" id="chat-mockup" aria-label="Demo percakapan dengan AINA">
             <div class="phone-header">
               <div class="phone-avatar">
                 <img
                   src="images/logo-aina.png"
-                  alt="AINA"
+                  alt="AINA avatar"
                   onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
                 />
                 <span style="display:none" aria-hidden="true">AI</span>
               </div>
               <div>
-                <p class="phone-name">AINA</p>
-                <p class="phone-status">online — siap bantu</p>
+                <p class="phone-header-name">AINA</p>
+                <p class="phone-header-status">online — siap bantu</p>
               </div>
             </div>
             <div class="phone-body" id="chat-body">
               <div class="bubble user" id="bubble-u1">AINA, syarat perpanjang visa pelajar apa aja ya?</div>
-              <div class="typing-indicator" id="typing-1" aria-hidden="true">
-                <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+              <div class="typing-indicator" id="typing-1">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
               </div>
               <div class="bubble aina-msg" id="bubble-a1">Siap! 🙌 Secara umum kamu perlu paspor asli, foto terbaru, dan surat keterangan aktif kuliah. Mau aku buatin checklist + timeline pengurusannya?</div>
               <div class="bubble user" id="bubble-u2">Boleh! Sekalian info kurs EGP → IDR dong.</div>
-              <div class="typing-indicator" id="typing-2" aria-hidden="true">
-                <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+              <div class="typing-indicator" id="typing-2">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
               </div>
               <div class="bubble aina-msg" id="bubble-a2">Oke, checklist meluncur 📋 — dan aku ambilkan kurs terbarunya sekalian ya. Ada lagi yang mau dibantu hari ini?</div>
             </div>
@@ -349,69 +382,28 @@
         </div>
       </div>
     </div>
-    <div class="time-label">±5 mnt</div>
+    <div class="segment-label">SEGMEN 6 · ±5 MENIT</div>
   </section>
 
-  <!-- SLIDE 12 — APA AJA YANG BISA DITANYA -->
-  <section class="slide" id="slide-12" data-slide="11">
-    <div class="slide-inner">
-      <h2 class="slide-title">Apa aja yang bisa ditanya ke AINA?</h2>
-      <div class="question-list">
-        <div class="question-pair fragment">
-          <div class="question-card">
-            <span class="question-emoji" aria-hidden="true">📄</span>
-            <p>"Syarat perpanjang visa pelajar apa aja?"</p>
-          </div>
-          <div class="question-card">
-            <span class="question-emoji" aria-hidden="true">💱</span>
-            <p>"Kurs EGP ke Rupiah hari ini berapa?"</p>
-          </div>
-        </div>
-        <div class="question-pair fragment">
-          <div class="question-card">
-            <span class="question-emoji" aria-hidden="true">📚</span>
-            <p>"Bantuin rangkum muqorror bab ini dong."</p>
-          </div>
-          <div class="question-card">
-            <span class="question-emoji" aria-hidden="true">🕌</span>
-            <p>"Susunkan jadwal muroja'ah seminggu ke depan."</p>
-          </div>
-        </div>
-        <div class="question-pair fragment">
-          <div class="question-card">
-            <span class="question-emoji" aria-hidden="true">🚌</span>
-            <p>"Dari Darrasa ke Ramsis enaknya naik apa?"</p>
-          </div>
-          <div class="question-card">
-            <span class="question-emoji" aria-hidden="true">🍲</span>
-            <p>"Menu masak hemat buat anak Kairo apa ya?"</p>
-          </div>
-        </div>
-      </div>
-      <p class="question-punchline fragment">Kalau Masisir pernah bingung soal itu — AINA memang dibuat untuk itu.</p>
-    </div>
-    <div class="time-label">±3 mnt</div>
-  </section>
-
-  <!-- SLIDE 13 — PENUTUP -->
-  <section class="slide slide--penutup" id="slide-13" data-slide="12">
+  <!-- SLIDE 10 — PENUTUP -->
+  <section class="slide slide--penutup" id="slide-10" data-slide="9">
     <div class="slide-inner text-center">
       <blockquote class="penutup-quote">
         "AI buat semua yang pengen hidup lebih gampang. Masisir gak boleh cuma nonton dari pinggir — kita harus ikut main, dan ikut membangun."
       </blockquote>
       <p class="penutup-attr">— Daru · Founder AIGYPT</p>
-      <h2 class="penutup-title">Ayo jadi bagian dari cerita ini.</h2>
+      <h2 class="penutup-title">Ayo jadi bagian dari revolusi ini!</h2>
       <p class="penutup-sub">AIGYPT terbuka untuk kolaborasi dengan siapapun — individu, organisasi, maupun lembaga.</p>
       <div class="penutup-buttons">
         <a class="btn-primary" href="https://wa.me/6281311506025" target="_blank" rel="noopener noreferrer">💬 Hubungi via WhatsApp</a>
-        <button class="btn-ghost" data-goto="0">Kembali ke awal ↑</button>
+        <button class="btn-ghost" data-goto="0">Kembali ke atas ↑</button>
       </div>
       <footer class="site-footer">
         <img src="images/logo-aigypt-white.png" alt="AIGYPT" />
         <span>© 2026 AIGYPT — Update Skills. Upgrade Life. AI for Masisir. · Kairo, Mesir</span>
       </footer>
     </div>
-    <div class="time-label">±3 mnt</div>
+    <div class="segment-label">SEGMEN 6 · ±3 MENIT</div>
   </section>
 
 </main>
