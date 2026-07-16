@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "AIGYPT × AINA — Presentation"
+version = "1.0.0"
+id = "artifacts/aigypt-aina"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24907
+
+[services.development]
+run = "pnpm --filter @workspace/aigypt-aina run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aigypt-aina", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/aigypt-aina/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24907"
+BASE_PATH = "/"

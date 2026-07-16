@@ -1,0 +1,137 @@
+# PROMPT UNTUK REPLIT AGENT — copy semua di bawah garis ini
+
+---
+
+Build a single-page **cinematic presentation website** for **AIGYPT × AINA**, entirely in **Bahasa Indonesia**. This site will be projected on a giant LED screen in front of a **10,000-person live audience**, so it must behave like a keyboard-driven stage deck, not a normal scrolling website. It will also be shared as a public URL afterward, so it must still work as a responsive website on mobile.
+
+## Tech stack
+- Plain **HTML + CSS + vanilla JS** (single page, no React, no UI libraries, no Tailwind). Speed and zero-dependency reliability matter more than anything: this page must never fail to load on stage.
+- Google Fonts only external dependency.
+- All images are local files I will upload into an `/images` folder (exact filenames listed below). Do not use stock photos or placeholders anywhere.
+
+## Stage / presentation behavior (most important requirements)
+1. The page is divided into **9 full-viewport slides** (each `min-height: 100svh`), using `scroll-snap-type: y mandatory` on desktop.
+2. **Keyboard navigation like a slide deck**: `ArrowDown` / `ArrowRight` / `Space` / `PageDown` → next slide; `ArrowUp` / `ArrowLeft` / `PageUp` → previous slide; `Home` / `End` → first / last slide; pressing **F** toggles fullscreen.
+3. A thin **gradient progress bar** fixed at the top, plus **slide indicator dots** fixed at the right edge (clickable, with the active dot glowing).
+4. **Entry animations replay every time a slide comes into view** (IntersectionObserver): headline rises with a slight blur-to-sharp, supporting elements stagger in 80–120 ms apart. Keep every animation under 700 ms — an arena audience must never wait. Fully respect `prefers-reduced-motion`.
+5. **Arena-scale typography**: this is viewed from 100 meters away. Hero headline `clamp(56px, 9vw, 170px)`; slide titles `clamp(40px, 6vw, 100px)`; body text minimum 18px, never more than ~2 short lines per paragraph on desktop. Extreme contrast at all times.
+6. On mobile (< 768px): disable scroll-snap, hide the dots, and let it behave as a normal well-designed scrolling landing page.
+
+## Design system
+- Background: near-black indigo `#05030f`, raised surfaces `#110a2b`, hairline borders `rgba(160,140,255,.16)`.
+- Accents: violet `#7c3aed`, soft violet `#a78bfa`, magenta `#e043d1`, cyan `#38c7f4`. Text: `#f2effc`, muted `#a49bce`.
+- Gradient signature used on key words and the progress bar: `linear-gradient(100deg, #38c7f4, #a78bfa, #e043d1)` applied via background-clip text.
+- Fonts: **Unbounded** (800/600) for display headlines, **Plus Jakarta Sans** for body, **JetBrains Mono** for eyebrows/labels/captions (uppercase, letter-spacing .2em).
+- Signature visual on the hero: a slow-rotating **"acrylic-pour" vortex** built from two layered, heavily-blurred conic-gradients (violet/cyan/magenta on black, 45–65 s rotation, `mix-blend-mode: screen`), with a radial vignette so text stays perfectly readable. This echoes the AIGYPT brand deck.
+- AIGYPT logo: use this exact inline SVG (triangle "A" with a star cut) in the nav and as favicon:
+```html
+<svg viewBox="0 0 64 64" fill="none"><defs><linearGradient id="lg" x1="0" y1="0" x2="64" y2="64"><stop offset="0" stop-color="#a78bfa"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#e043d1"/></linearGradient></defs><path d="M32 6 58 52H44.5L32 29 19.5 52H6L32 6Z" fill="url(#lg)"/><path d="M24 44l4-2.4.9-4.6 2.3 4 4.6.6-3.4 3.2.7 4.6-4.1-2.2-4.2 2 .9-4.6L22 41.4Z" fill="#0b0721"/></svg>
+```
+- Minimal fixed nav: logo + wordmark "AIGYPT" left; links Kenapa · Visi · Perjalanan · Program · AINA · and a pill button "Gabung →" right; translucent blur background.
+
+## Images (already in `/images`, use exactly these paths)
+- `images/batch-0-kelas.jpg` — kelas perdana Batch 0
+- `images/batch-0-ruangan.jpg` — ruangan penuh Batch 0
+- `images/batch-1-aula.jpg` — aula besar Batch 1
+- `images/batch-1-komunitas.jpg` — foto komunitas di taman
+- `images/batch-1-tim.jpg` — tim inti (portrait)
+- `images/batch-3-kelas.jpg` — sesi kelas Batch 3
+- `images/batch-3-mentoring.jpg` — sesi mentoring (portrait)
+- `images/batch-3-demoday.jpg` — screenshot platform belajar & Demo Day
+
+All photos: `object-fit: cover`, rounded 16px, hairline border, JetBrains Mono caption overlaid on a bottom dark gradient. Lazy-load everything below the hero; `fetchpriority="high"` is not needed since the hero has no photo.
+
+## The 9 slides — use this copy VERBATIM (do not rewrite, do not translate)
+
+### Slide 1 — HERO
+- Eyebrow (mono): `AIGYPT × AINA · PROFIL KOMUNITAS`
+- Headline (3 lines, last line gradient): `Update Skills.` / `Upgrade Life.` / `AI for Masisir.`
+- Lead: `AI bukan masa depan — AI adalah kenyataan. Dan sekarang, Masisir gak cuma jadi penonton: kita ikut main di dalamnya. Welcome to the New Era.`
+- Three chips (mono): `Dibawakan oleh Daru — Founder AIGYPT` · `Komunitas AI pertama untuk Masisir` · `Batch 0 → 3 dan terus berjalan`
+- Bottom center hint: `TEKAN SPASI / SCROLL ↓`
+
+### Slide 2 — KENAPA AIGYPT ADA
+- Eyebrow: `01 · KENAPA AIGYPT ADA`
+- Title: `Dunia berubah lebih cepat dari yang kita bayangkan.`
+- Sub: `Teknologi melesat, tuntutan makin tinggi, dan efisiensi jadi harga mati. Tapi mahasiswa Indonesia di Mesir masih mengandalkan cara-cara lama.`
+- 4 persona cards (tag mono magenta + title + 3 bullets each):
+  1. `AKADEMISI` — **Fokus ngaji & kuliah**: Catatan tercecer, materi gak terorganisir. / Belajar manual, hafalan tidak terstruktur. / Susah cari referensi & nulis makalah.
+  2. `ORGANISATOR` — **Aktivis organisasi**: Capek bikin laporan, proposal, & notulen manual. / Waktu habis buat teknis, bukan ide strategis. / Sibuk tapi tidak produktif.
+  3. `PENGUSAHA` — **Pebisnis Masisir**: Promosi masih manual & gak konsisten. / Bingung bikin caption / iklan menarik. / Gak tahu cara auto-respond & analisis pasar.
+  4. `KREATOR` — **Freelancer & kreator**: Mentok di inspirasi. / Riset, desain, caption, posting — sendiri. / Bingung bangun personal branding.
+- Closing punchline (large, left border violet): `AI bukan sekadar tren. Kalau dipahami, AI bisa mengubah total cara kita belajar, bekerja, berorganisasi — bahkan membangun penghasilan.`
+
+### Slide 3 — VISI
+- Eyebrow: `02 · ARAH GERAK`
+- Title: `Satu visi, dua babak.`
+- Two big milestone cards on a vertical glowing rail (cyan→violet→magenta), first node marked ✓ done, second marked ▶:
+  - **2025 — Kenalkan**: `Memperkenalkan penggunaan AI di lingkungan Masisir dalam kehidupan sehari-hari: belajar lebih terstruktur, organisasi lebih efisien, bisnis lebih hidup.`
+  - **2026 — Karyakan**: `Mengajak Masisir menghasilkan produk solusi dari masalah yang dialami sehari-hari. Dari pengguna jadi pembuat — dan bukti pertamanya sudah lahir: AINA.`
+- Year numbers in gradient display type, very large.
+
+### Slide 4 — BATCH 0
+- Tag pill (mono): `BATCH 0` · Title: `Titik nol: AI untuk Revolusi Masisir`
+- Copy: `Kelas perdana yang membuka semuanya. Mindset AI & kode etik untuk Masisir pertama kali dibangun — menjawab keraguan, membedah pro-kontra, dan mengenalkan dasar prompting. Ruangan penuh, dan satu hal jadi jelas: Masisir siap untuk era baru.`
+- Two photos side by side: `batch-0-kelas.jpg` (caption `BATCH 0 · KELAS PERDANA`) and `batch-0-ruangan.jpg` (caption `BATCH 0 · RUANGAN PENUH`).
+
+### Slide 5 — BATCH 1
+- Tag: `BATCH 1` · Title: `Skala membesar: dari kelas jadi komunitas`
+- Copy: `Antusiasme meledak. Peserta datang dari berbagai kalangan — yang fokus ngaji, aktivis organisasi, pebisnis, sampai kreator. Materi masuk ke tools praktis untuk keseharian, dan AIGYPT mulai terasa bukan sekadar kelas, tapi komunitas belajar bersama.`
+- Three photos: `batch-1-aula.jpg` (`BATCH 1 · AULA PENUH`), `batch-1-komunitas.jpg` (`BATCH 1 · KOMUNITAS`), `batch-1-tim.jpg` (`BATCH 1 · TIM INTI`).
+
+### Slide 6 — BATCH 3
+- Tag: `BATCH 3` · Title: `Dari belajar ke berkarya`
+- Copy: `Babak baru menuju visi 2026. Peserta gak cuma belajar pakai AI — mereka membangun karya dari masalah sehari-hari, dibimbing lewat platform belajar milik AIGYPT sendiri: dari ide, blueprint, rilis-rusak-perbaiki, sampai tampil di Demo Day.`
+- Three photos: `batch-3-kelas.jpg` (`BATCH 3 · SESI KELAS`), `batch-3-mentoring.jpg` (`BATCH 3 · MENTORING`), `batch-3-demoday.jpg` (`BATCH 3 · PLATFORM & DEMO DAY`).
+
+### Slide 7 — PROGRAM
+- Eyebrow: `04 · APA YANG DIPELAJARI`
+- Title: `Step by step menuju hidup lebih mudah dengan AI.`
+- Numbered list 01–06 (mono numbers in magenta):
+  1. **Mindset AI & Kode Etik** — AI sebagai alat bantu, bukan pengganti guru & adab keilmuan.
+  2. **ChatGPT & Prompting Dasar** — nanya yang bener biar jawabannya bener.
+  3. **Canva AI & Konten Cerdas** — desain menarik tanpa harus jago desain dulu.
+  4. **Notion AI & Manajemen Hidup** — catatan rapi, jadwal teratur, hidup terkendali.
+  5. **AI untuk Bisnis & Organisasi** — proposal, laporan, promosi, auto-respond.
+  6. **Showcase Proyek + Sertifikasi** — karya nyata + sertifikat eksklusif.
+- Benefit chips: `✓ Modul & template prompt siap pakai` · `✓ Grup belajar & sertifikat eksklusif` · `✓ Showcase AI untuk Masisir` · `✓ Komunitas AI terbesar di Masisir`
+- Footnote: `Terbuka untuk semua kalangan — mahasiswa S1–S2 Al-Azhar, aktivis organisasi, pebisnis, freelancer & kreator.`
+
+### Slide 8 — AINA (produk)
+- Eyebrow: `05 · PRODUK — VISI 2026 JADI NYATA`
+- Title: `Kenalin, AINA.` (kata "AINA." pakai gradient)
+- Sub: `Asisten pintar Masisir. Dibangun dari masalah sehari-hari Masisir, oleh Masisir — bukti bahwa kita bukan cuma pengguna AI, tapi pembuatnya.`
+- Layout: copy kiri, **phone-style chat mockup** kanan (rounded 28px, violet glow shadow, header avatar gradient "AI", nama **AINA**, status hijau `online — siap bantu`). Chat bubbles verbatim:
+  - user: `AINA, syarat perpanjang visa pelajar apa aja ya?`
+  - AINA: `Siap! 🙌 Secara umum kamu perlu paspor asli, foto terbaru, dan surat keterangan aktif kuliah. Mau aku buatin checklist + timeline pengurusannya?`
+  - user: `Boleh! Sekalian info kurs EGP → IDR dong.`
+  - AINA: `Oke, checklist meluncur 📋 — dan aku ambilkan kurs terbarunya sekalian ya. Ada lagi yang mau dibantu hari ini?`
+  - Bonus: animate the bubbles appearing one-by-one (with a brief typing indicator) each time this slide enters view.
+- 3 feature rows kiri: **Administrasi & birokrasi** (urusan kampus, dokumen, izin tinggal), **Teman akademik** (belajar, rangkuman, muroja'ah), **Kehidupan di Mesir** (visa, kurs, transportasi, tips Kairo).
+- Dashed-border note card: `🔑 Akses AINA akan dibagikan langsung melalui tenant masing-masing — tinggal pakai, tanpa ribet.`
+- **IMPORTANT RULE: do NOT include any external link, URL, or domain for AINA anywhere on the site.** The tenant note above is the only access information allowed.
+
+### Slide 9 — QUOTE + CTA (centered)
+- Large display quote: `"AI buat semua yang pengen hidup lebih gampang. Masisir gak boleh cuma nonton dari pinggir — kita harus ikut main, dan ikut membangun."`
+- Attribution (mono): `— DARU · FOUNDER AIGYPT`
+- Title: `Ayo jadi bagian dari revolusi ini!`
+- Sub: `AIGYPT terbuka untuk kolaborasi dengan siapapun — individu, organisasi, maupun lembaga.`
+- Primary button (gradient violet→magenta, glow): `💬 Hubungi via WhatsApp` → `https://wa.me/6281311506025`
+- Ghost button: `Kembali ke atas ↑`
+- Small footer line at the very bottom: `© 2026 AIGYPT — Update Skills. Upgrade Life. AI for Masisir. · Kairo, Mesir`
+
+## Meta & quality bar
+- `<title>AIGYPT × AINA — Update Skills. Upgrade Life. AI for Masisir.</title>`
+- Meta description: `AIGYPT adalah komunitas & program pelatihan AI pertama untuk Masisir — mahasiswa Indonesia di Mesir. AINA adalah asisten pintar Masisir, produk pertama dari visi 2026.`
+- Open Graph title/description/type, theme-color `#7c3aed`, favicon from the logo SVG.
+- Semantic HTML (header/section/figure/figcaption), alt text on every photo, visible keyboard focus states, WCAG-AA contrast.
+- Must run at 60fps on a mid-range laptop: only animate `transform`/`opacity`, blur layers use `will-change` sparingly.
+
+## Acceptance checklist (verify all before finishing)
+- [ ] 9 slides, snap scrolling, arrow-key/space navigation, F = fullscreen, dots + progress bar work
+- [ ] All 8 photos load from `/images` with correct captions; no placeholders
+- [ ] All copy in Bahasa Indonesia exactly as written above
+- [ ] No AINA link/domain anywhere; tenant note present
+- [ ] WhatsApp button opens wa.me/6281311506025
+- [ ] Animations replay on slide re-entry; `prefers-reduced-motion` respected
+- [ ] Looks correct at 1920×1080 (stage), 3840×2160, and 390px mobile
