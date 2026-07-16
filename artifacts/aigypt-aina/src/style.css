@@ -225,17 +225,21 @@ kbd {
 }
 
 /* ---- Fragment system ---- */
+/* Fragments start hidden; .slide.in-view triggers staggered CSS animation */
 .fragment {
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 400ms ease, transform 400ms ease;
+  transform: translateY(16px);
 }
-.fragment.revealed {
-  opacity: 1;
-  transform: none;
+.slide.in-view .fragment {
+  animation: fragIn 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--frag-delay, 0ms);
+}
+@keyframes fragIn {
+  to { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fragment { transition: none !important; }
+  .fragment { opacity: 1 !important; transform: none !important; }
+  .slide.in-view .fragment { animation: none; }
 }
 
 /* ==================================================
@@ -509,14 +513,14 @@ kbd {
   max-width: 720px;
 }
 .program-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 2rem;
+  display: flex;
+  flex-direction: column;
   border-top: 1px solid var(--border);
 }
 .program-pair {
-  /* fragment wrapper: contains 2 rows */
-  display: contents; /* let rows participate in grid */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 2rem;
 }
 .program-row {
   display: grid;
@@ -866,8 +870,7 @@ kbd {
   .photo-grid-2 { grid-template-columns: 1fr; }
   .photo-grid-3 { grid-template-columns: 1fr 1fr; }
   .aina-layout { grid-template-columns: 1fr; gap: 2.5rem; }
-  .program-grid { grid-template-columns: 1fr; gap: 0; }
-  .program-pair { display: block; }
+  .program-pair { grid-template-columns: 1fr; }
   .hero-headline { text-align: left; }
   .hero-lead, .hero-chip, .hero-hint { text-align: left; }
   .hero-logo { margin-left: 0; }
