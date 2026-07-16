@@ -1,0 +1,171 @@
+# PROMPT REPLIT v3 — copy semua di bawah garis ini
+
+---
+
+Rebuild this project **from scratch** as a polished, single-page **interactive presentation website** for **AIGYPT × AINA**, entirely in **Bahasa Indonesia**. Audience: **khalayak umum** — a live crowd of up to 10,000 people of all backgrounds (students, community elders, business owners), most of whom know nothing about AI. The site is structured as a **30-minute stage talk divided into 4 chapters ("Bab")**, works like a keyboard-driven slide deck with step-by-step reveals, and doubles as a normal responsive website afterward.
+
+The writing must be warm, simple, and story-driven. Zero tech jargon without explanation. Every slide has one idea only.
+
+## Design rules (strict — the previous build failed by over-decorating)
+1. **ONE font: "Plus Jakarta Sans"** (Google Fonts; 400, 500, 600, 700, 800). Headlines weight 800, letter-spacing -0.02em. Eyebrows/labels: weight 600, uppercase, letter-spacing 0.18em, 12–13px.
+2. **Palette — black with a hint of purple, exactly these tokens:**
+   - `--bg:#0B0712` · `--surface:#151021` · `--border:rgba(167,139,250,.14)`
+   - `--accent:#7C3AED` · `--accent-soft:#A78BFA` · `--text:#F4F1FA` · `--muted:#9D93B8`
+   - Only gradient allowed: `linear-gradient(120deg,#A78BFA,#7C3AED)` — for one key word per headline, the primary button, and the progress bar. **No cyan, no magenta, no animated background.**
+3. One decorative element only: a static radial purple glow behind slide 1 (`radial-gradient(ellipse at 50% 25%, rgba(124,58,237,.22), transparent 60%)`).
+4. Max content width 1120px, generous whitespace, all animations ≤500ms using only transform/opacity, `prefers-reduced-motion` respected.
+
+## Logos (real files in `/images` — never draw logos with CSS)
+- `images/logo-aigypt.png` (purple, transparent) → nav (~34px), hero (~110px), favicon.
+- `images/logo-aigypt-white.png` → footer.
+- `images/logo-aina.png` (transparent) → AINA reveal slide + chat avatar. **If the file is missing, fall back** to a rounded gradient square with "AI" in weight 800 — never a broken-image icon.
+
+## Presentation system
+- Full-viewport slides (`min-height:100svh`), `scroll-snap-type:y mandatory` on desktop; below 768px snap is off and it behaves as a normal scrolling site (dots hidden).
+- **Keyboard:** `Space`/`ArrowDown`/`ArrowRight` → next fragment, or next slide when fragments are done. `ArrowUp`/`ArrowLeft` → back. `Home`/`End` → first/last. `F` fullscreen. `T` presenter timer. `R` replays the AINA chat. Click/tap also advances.
+- **Fragments:** marked elements start hidden (`opacity:0; translateY(14px)`) and reveal one per keypress (400ms). On mobile scroll, fragments simply appear.
+- **Chapter system:** slides belong to 4 chapters. A small fixed label top-center shows the current chapter (e.g. `BAB 2 · AIGYPT`). The right-side slide dots are **grouped by chapter** with a small gap between groups. Each chapter opens with a divider slide (see below).
+- **Presenter timer (T):** hidden pill top-left, `mm:ss / 30:00`, starts on first keypress, amber at 25:00, red past 30:00.
+- Tiny muted label bottom-left of each slide: `±N MENIT` (values below).
+- Thin gradient progress bar top.
+
+## Photos (in `/images`, exact filenames)
+`batch-0-kelas.jpg`, `batch-0-ruangan.jpg`, `batch-1-aula.jpg`, `batch-1-komunitas.jpg`, `batch-1-tim.jpg` (portrait), `batch-3-kelas.jpg`, `batch-3-mentoring.jpg` (portrait), `batch-3-demoday.jpg`.
+
+---
+
+# STRUKTUR: 4 BAB · 13 SLIDE · 30 MENIT
+Copy is **VERBATIM** — do not rewrite or translate.
+
+## BAB 1 · CERITA KITA (±7 menit)
+
+### Slide 1 — SAMPUL · ±2 mnt
+Centered: AIGYPT logo besar → eyebrow `AIGYPT × AINA · UNTUK MASISIR` → headline dengan kata terakhir gradient:
+`Update Skills. Upgrade Life.`
+`AI for Masisir.`
+Lead: `Malam ini, kita cerita tentang sebuah komunitas — dan sebuah karya — yang lahir dari keseharian Masisir.`
+Chip: `Dibawakan oleh Daru — Founder AIGYPT`
+Hint bawah: `TEKAN SPASI UNTUK MULAI ↓`
+
+### Slide 2 — PEMBUKA BAB 1 (divider)
+Divider slides are minimal: huge chapter number in gradient (`01`), chapter title `Cerita Kita`, one line: `Mulai dari yang paling dekat: keseharian kita sendiri.` No fragments.
+
+### Slide 3 — JUJUR-JUJURAN · ±3 mnt
+Title: `Sebelum mulai, jujur-jujuran dulu.`
+Three big rows, **each a fragment** (presenter asks the crowd to raise hands — this is the audience-interaction moment):
+- 🙋 `Siapa yang catatannya numpuk, tapi gak pernah sempat dibuka lagi?`
+- 🙋 `Siapa yang begadang bukan karena belajar — tapi karena bikin laporan?`
+- 🙋 `Siapa yang bisnisnya jalan, tapi capek jawab chat pembeli satu-satu?`
+Final fragment, larger, accent border kiri: `Tenang. Kita semua sama. Dan malam ini, kita bahas jalan keluarnya.`
+
+### Slide 4 — APA ITU AI · ±2 mnt
+Eyebrow `SEDERHANANYA BEGINI` · Title: `Sebenarnya, apa sih AI itu?`
+Fragment 1: `Bayangkan punya asisten pribadi yang bisa diajak ngobrol. Dia bisa bantu merangkum catatan, menyusun jadwal, menulis draf laporan, sampai membuat desain promosi — dalam hitungan detik.`
+Fragment 2 (punchline besar): `AI bukan pengganti manusia. AI itu alat — seperti kalkulator, tapi untuk ide, tulisan, dan pekerjaan. Dan kendalinya tetap di tangan kita.`
+
+## BAB 2 · AIGYPT (±11 menit)
+
+### Slide 5 — PEMBUKA BAB 2 (divider)
+`02` · `AIGYPT` · `Komunitas belajar AI pertama untuk Masisir.`
+
+### Slide 6 — KENALIN AIGYPT · ±3 mnt
+Title: `Kenalin: AIGYPT.` (kata "AIGYPT." gradient)
+Sub: `Komunitas belajar AI pertama untuk Masisir — mahasiswa Indonesia di Mesir. Tempat belajar teknologi dengan bahasa sehari-hari, dari nol, bareng-bareng.`
+Three pillar cards (fragments):
+- `BELAJAR BARENG` — Kelas & modul dari nol. Gak perlu latar belakang IT — yang penting mau mencoba.
+- `PRAKTIK LANGSUNG` — Bukan teori. Langsung dipakai untuk kuliah, organisasi, dan bisnis besok pagi.
+- `TUMBUH BERSAMA` — Komunitas, showcase karya, dan sertifikat. Belajar paling awet itu yang ditemani.
+Final fragment (visi, one line, besar): `Visi kami sederhana: 2025 mengenalkan AI dalam keseharian Masisir — 2026 mengajak Masisir membangun karya dari masalahnya sendiri.`
+
+### Slide 7 — PERJALANAN · ±3 mnt
+Eyebrow `JEJAK YANG SUDAH DITEMPUH` · Title: `Dari titik nol sampai berkarya.`
+Horizontal timeline dengan 3 titik, **each a fragment**:
+- `BATCH 0 — Titik Nol` · `Kelas perdana. Membangun cara pandang yang sehat tentang AI & adab memakainya. Ruangan penuh.`
+- `BATCH 1 — Jadi Komunitas` · `Peserta datang dari berbagai kalangan. Dari kelas, tumbuh jadi komunitas belajar bersama.`
+- `BATCH 3 — Mulai Berkarya` · `Peserta membangun karya dari masalah sehari-hari — sampai tampil di Demo Day.`
+Small muted line bawah: `Lihat momen-momennya di galeri berikut →`
+
+### Slide 8 — GALERI · ±2 mnt
+**This gallery must be immaculate — it is the visual heart of the site.**
+Eyebrow `MOMEN-MOMEN AIGYPT` · Title: `Galeri perjalanan.`
+- **Filter chips** di bawah judul: `Semua · Batch 0 · Batch 1 · Batch 3` (pill, active = gradient). Filtering animates smoothly (fade + scale 250ms), grid re-flows without jumps.
+- **Uniform grid**: 4 kolom desktop / 2 kolom tablet / 1 kolom mobile, gap 14px, setiap tile `aspect-ratio:4/3`, `object-fit:cover`, radius 14px, border 1px `--border`. Portrait photos crop gracefully with `object-position:center top`.
+- Hover: foto scale 1.03 + caption slides up on a bottom dark gradient (caption uppercase 12px weight 600).
+- **Lightbox**: klik foto → overlay gelap penuh, foto besar (max 90vw/85vh, radius 16px), caption di bawah, tombol ‹ › + tombol ✕, navigasi keyboard (panah, Esc), swipe di mobile. While the lightbox is open, slide navigation keys are suspended.
+- 8 foto + caption:
+  - batch-0-kelas.jpg → `Batch 0 · Kelas perdana`
+  - batch-0-ruangan.jpg → `Batch 0 · Ruangan penuh`
+  - batch-1-aula.jpg → `Batch 1 · Aula penuh`
+  - batch-1-komunitas.jpg → `Batch 1 · Komunitas`
+  - batch-1-tim.jpg → `Batch 1 · Tim inti`
+  - batch-3-kelas.jpg → `Batch 3 · Sesi kelas`
+  - batch-3-mentoring.jpg → `Batch 3 · Mentoring`
+  - batch-3-demoday.jpg → `Batch 3 · Platform & Demo Day`
+
+### Slide 9 — YANG DIPELAJARI · ±3 mnt
+Eyebrow `DI KELAS AIGYPT` · Title: `Yang dipelajari — dan langsung kepakai.`
+Enam baris bernomor, grid 2 kolom, reveal **3 fragments (dua baris per tekan)**:
+01 `Cara pandang & adab ber-AI` — AI sebagai alat bantu, bukan pengganti guru & ilmu.
+02 `Ngobrol dengan AI (prompting)` — cara bertanya yang benar biar jawabannya benar.
+03 `Desain tanpa harus jago desain` — konten & poster menarik dalam hitungan menit.
+04 `Hidup lebih teratur` — catatan rapi, jadwal jelas, hafalan terjadwal.
+05 `AI untuk organisasi & bisnis` — proposal, laporan, promosi, balas chat otomatis.
+06 `Showcase karya + sertifikat` — pulang bawa karya nyata, bukan cuma ilmu.
+Last fragment (muted): `Terbuka untuk semua kalangan — yang fokus ngaji, aktivis, pebisnis, sampai kreator.`
+
+## BAB 3 · AINA (±9 menit)
+
+### Slide 10 — PEMBUKA BAB 3 (dramatic reveal) · ±1 mnt
+Centered, minimal. Fragment 1 (huge text only): `Dari komunitas ini, lahir sebuah karya.`
+Fragment 2: AINA logo fades in below (from `images/logo-aina.png`, fallback rule applies) dengan satu baris: `Dibuat oleh Masisir, untuk Masisir.`
+
+### Slide 11 — KENALIN AINA · ±5 mnt
+Dua kolom. Kiri: eyebrow `KARYA PERTAMA · VISI 2026 JADI NYATA`, title `Kenalin: AINA.` ("AINA." gradient), sub: `AINA adalah asisten pintar untuk Masisir. Cukup tanya — seperti chat ke teman — dan AINA bantu jawab urusan kuliah, dokumen, sampai kehidupan sehari-hari di Mesir.`
+Dashed note card (fragment terakhir kolom kiri): `🔑 Akses AINA akan dibagikan langsung melalui tenant masing-masing — tinggal pakai, tanpa ribet.`
+Kanan: **phone-style chat mockup** (radius 24px, `--surface`, subtle purple glow; header: avatar logo AINA + `AINA` + status hijau `online — siap bantu`). Saat slide terbuka, percakapan **auto-play** dengan typing indicator (~900ms per bubble); `R` untuk replay:
+- user: `AINA, syarat perpanjang visa pelajar apa aja ya?`
+- AINA: `Siap! 🙌 Secara umum kamu perlu paspor asli, foto terbaru, dan surat keterangan aktif kuliah. Mau aku buatin checklist + timeline pengurusannya?`
+- user: `Boleh! Sekalian info kurs EGP → IDR dong.`
+- AINA: `Oke, checklist meluncur 📋 — dan aku ambilkan kurs terbarunya sekalian ya. Ada lagi yang mau dibantu hari ini?`
+**IMPORTANT: no external link, URL, or domain for AINA anywhere on the site.** The tenant note is the only access info.
+
+### Slide 12 — APA AJA YANG BISA DITANYA · ±3 mnt
+Title: `Apa aja yang bisa ditanya ke AINA?`
+Grid 3×2 kartu pertanyaan (reveal **3 fragments, dua kartu per tekan**) — tulis persis:
+- 📄 `"Syarat perpanjang visa pelajar apa aja?"`
+- 💱 `"Kurs EGP ke Rupiah hari ini berapa?"`
+- 📚 `"Bantuin rangkum muqorror bab ini dong."`
+- 🕌 `"Susunkan jadwal muroja'ah seminggu ke depan."`
+- 🚌 `"Dari Darrasa ke Ramsis enaknya naik apa?"`
+- 🍲 `"Menu masak hemat buat anak Kairo apa ya?"`
+Final fragment (punchline besar, tengah): `Kalau Masisir pernah bingung soal itu — AINA memang dibuat untuk itu.`
+
+## BAB 4 · AJAKAN (±3 menit)
+
+### Slide 13 — PENUTUP · ±3 mnt
+Centered. Quote besar: `"AI buat semua yang pengen hidup lebih gampang. Masisir gak boleh cuma nonton dari pinggir — kita harus ikut main, dan ikut membangun."`
+Atribusi: `— DARU · FOUNDER AIGYPT`
+Title: `Ayo jadi bagian dari cerita ini.`
+Sub: `AIGYPT terbuka untuk kolaborasi dengan siapapun — individu, organisasi, maupun lembaga.`
+Tombol: gradient `💬 Hubungi via WhatsApp` → `https://wa.me/6281311506025` · ghost `Kembali ke awal ↑`
+Footer dengan logo putih: `© 2026 AIGYPT — Update Skills. Upgrade Life. AI for Masisir. · Kairo, Mesir`
+
+---
+
+## Fixed nav
+Logo + `AIGYPT` kiri · link `Cerita · AIGYPT · Galeri · AINA` · pill gradient `Gabung →` kanan. Background `rgba(11,7,18,.8)` + backdrop blur, hairline bawah muncul setelah scroll.
+
+## Tech & quality
+- Plain **HTML + CSS + vanilla JS** (boleh dipisah file). No frameworks, no Tailwind, no libraries. Google Fonts satu-satunya resource eksternal.
+- `<title>AIGYPT × AINA — Update Skills. Upgrade Life. AI for Masisir.</title>` · meta description: `AIGYPT adalah komunitas belajar AI pertama untuk Masisir. AINA adalah asisten pintar Masisir — karya pertama dari visi 2026.` · theme-color `#7C3AED` · favicon dari logo.
+- Semantic HTML, alt text semua foto, focus states terlihat, kontras AA, 60fps, lazy-load semua foto di bawah slide 1.
+
+## Acceptance checklist — verify EVERY item
+- [ ] Hanya Plus Jakarta Sans; hanya token warna hitam-ungu di atas
+- [ ] Logo asli tampil di nav, sampul, slide reveal AINA, chat avatar, footer; fallback AINA bekerja
+- [ ] 13 slide dalam 4 bab; label bab tampil; dots dikelompokkan per bab
+- [ ] Fragment reveal jalan dengan Spasi; F fullscreen; T timer 30 menit; label ±menit tiap slide
+- [ ] Galeri: filter chips animasi halus, grid rapi 4/2/1 kolom, lightbox dengan keyboard & swipe, navigasi slide tersuspensi saat lightbox terbuka
+- [ ] Chat AINA auto-play + typing indicator + R replay; tidak ada link/domain AINA di manapun
+- [ ] Tombol WhatsApp membuka wa.me/6281311506025
+- [ ] Rapi di 1920×1080 fullscreen dan 390px mobile; prefers-reduced-motion dihormati
