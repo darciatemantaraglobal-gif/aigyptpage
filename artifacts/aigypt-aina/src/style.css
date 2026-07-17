@@ -810,6 +810,18 @@ body {
   font-weight: 600;
   color: var(--text);
   line-height: 1.5;
+  transition: opacity 380ms ease, transform 380ms cubic-bezier(.22,1,.36,1),
+              border-color 300ms ease, box-shadow 300ms ease;
+}
+/* stagger: card is invisible until JS removes this class */
+.question-card.card-hidden {
+  opacity: 0;
+  transform: translateY(22px) scale(0.96);
+}
+/* highlight: active card being "dissected" */
+.question-card.card-active {
+  border-color: var(--accent-soft);
+  box-shadow: 0 0 0 1px var(--accent-soft), 0 4px 24px rgba(124,58,237,.25);
 }
 /* Fix #4: SVG icon in question cards */
 .q-icon {

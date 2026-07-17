@@ -335,6 +335,10 @@ function goToSlide(n: number, replay = false) {
   // Play cascade
   playCascade(SLIDES[currentSlide], reducedMotion || isMobile());
 
+  // Stagger-reveal question cards on slide 11
+  if (currentSlide === 11) revealQuestionCards();
+  else resetQuestionCards();
+
   // Start presenter timer on first advance
   if (!timerRunning && !replay) startTimer();
 }
@@ -345,6 +349,42 @@ function replayCurrentSlide() {
     renderGallery(galleryFilter, !reducedMotion && !isMobile());
   }
   playCascade(SLIDES[currentSlide]);
+  if (currentSlide === 11) revealQuestionCards();
+}
+
+// ── QUESTION CARD STAGGER (slide 11) ─────────────────────────
+let qCardTimers: ReturnType<typeof setTimeout>[] = [];
+
+function resetQuestionCards() {
+  qCardTimers.forEach(clearTimeout);
+  qCardTimers = [];
+  document.querySelectorAll<HTMLElement>('.question-card').forEach(c => {
+    c.classList.remove('card-hidden', 'card-active');
+  });
+}
+
+function revealQuestionCards() {
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.question-card'));
+  // Instantly arm all cards as hidden
+  cards.forEach(c => { c.classList.remove('card-active'); c.classList.add('card-hidden'); });
+
+  qCardTimers.forEach(clearTimeout);
+  qCardTimers = [];
+
+  // Stagger reveal: each card slides in 200ms apart, starting after cascade
+  cards.forEach((card, i) => {
+    const t1 = setTimeout(() => {
+      card.classList.remove('card-hidden');
+      card.classList.add('card-active');
+    }, 500 + i * 200);
+
+    // Remove highlight after a beat, leaving card visible
+    const t2 = setTimeout(() => {
+      card.classList.remove('card-active');
+    }, 500 + i * 200 + 600);
+
+    qCardTimers.push(t1, t2);
+  });
 }
 
 // ── UI UPDATES ────────────────────────────────────────────────
