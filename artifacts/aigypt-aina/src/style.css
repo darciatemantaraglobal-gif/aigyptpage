@@ -273,6 +273,12 @@ body {
   line-height: 1.08;
   color: var(--text);
 }
+.hero-tagline {
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
 .hero-lead {
   font-size: clamp(17px, 1.8vw, 22px);
   font-weight: 500;
