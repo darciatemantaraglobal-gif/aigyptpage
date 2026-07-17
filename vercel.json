@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm --filter @workspace/aigypt-aina run build",
+  "outputDirectory": "artifacts/aigypt-aina/dist",
+  "installCommand": "pnpm install",
+  "framework": null
+}
