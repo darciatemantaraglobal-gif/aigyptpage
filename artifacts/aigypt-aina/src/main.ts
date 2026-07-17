@@ -1,292 +1,404 @@
+// ============================================================
+// AIGYPT × AINA — main.ts v6 (Auto-cascade Edition)
+// ============================================================
 import './style.css';
 
-// ============================================================
-// STATE
-// ============================================================
-let currentSlide = 0;
-let fragmentIndex = -1;
-let timerStarted = false;
-let timerStart: number | null = null;
-let timerInterval: ReturnType<typeof setInterval> | null = null;
-let timerVisible = false;
-let lightboxOpen = false;
-let lightboxIndex = 0;
-let chatTimeouts: ReturnType<typeof setTimeout>[] = [];
-let teamStaggerDone = false;
-let touchStartY = 0;
-let lbTouchX = 0;
+// ── CONSTANTS ────────────────────────────────────────────────
+const SLIDE_TIMES = [2,1,2,2,1,3,2,2,2,1,4,3,2,1,2,2]; // ±N per slide (index matches data-idx)
 
-const isMobile = () => window.innerWidth < 768;
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// ============================================================
-// CHAPTER CONFIG
-// ============================================================
-const CHAPTERS = [
-  { start: 0, end: 2,  label: 'BAB 1 · CERITA KITA' },
-  { start: 3, end: 6,  label: 'BAB 2 · AIGYPT' },
-  { start: 7, end: 11, label: 'BAB 3 · AINA' },
-  { start: 12, end: 13, label: 'BAB 4 · AJAKAN' },
+const CHAPTERS: { start: number; end: number; label: string }[] = [
+  { start: 0,  end: 3,  label: 'BAB 1 · CERITA KITA' },
+  { start: 4,  end: 8,  label: 'BAB 2 · AIGYPT' },
+  { start: 9,  end: 13, label: 'BAB 3 · AINA' },
+  { start: 14, end: 15, label: 'BAB 4 · AJAKAN' },
 ];
 
-// Slides where pairs should be revealed together (same keypress)
-// data-frag-group attribute marks "sibling" fragments
-// They'll be handled by checking data-frag-group adjacency
-
-// ============================================================
-// DOM REFERENCES
-// ============================================================
-const slidesContainer = document.getElementById('slides-container')!;
-const progressBar = document.getElementById('progress-bar')!;
-const chapterLabel = document.getElementById('chapter-label')!;
-const timerEl = document.getElementById('timer')!;
-const mainNav = document.getElementById('main-nav')!;
-const SLIDES = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
-const TOTAL = SLIDES.length;
-
-// ============================================================
-// GALLERY DATA
-// ============================================================
-const galleryPhotos = [
-  { src: 'images/batch-0-kelas.jpg',     caption: 'Batch 0 · Kelas perdana',        batch: '0' },
-  { src: 'images/batch-0-ruangan.jpg',   caption: 'Batch 0 · Ruangan penuh',        batch: '0' },
-  { src: 'images/batch-1-aula.jpg',      caption: 'Batch 1 · Aula penuh',           batch: '1' },
-  { src: 'images/batch-1-komunitas.jpg', caption: 'Batch 1 · Komunitas',            batch: '1' },
-  { src: 'images/batch-1-tim.jpg',       caption: 'Batch 1 · Tim inti',             batch: '1' },
-  { src: 'images/batch-3-kelas.jpg',     caption: 'Batch 3 · Sesi kelas',           batch: '3' },
-  { src: 'images/batch-3-mentoring.jpg', caption: 'Batch 3 · Mentoring',            batch: '3' },
-  { src: 'images/batch-3-demoday.jpg',   caption: 'Batch 3 · Platform & Demo Day',  batch: '3' },
+const GALLERY_PHOTOS = [
+  { src: 'images/batch-0-kelas.jpg',     caption: 'Batch 0 · Kelas perdana',     batch: 'batch-0' },
+  { src: 'images/batch-0-ruangan.jpg',   caption: 'Batch 0 · Ruangan penuh',     batch: 'batch-0' },
+  { src: 'images/batch-1-aula.jpg',      caption: 'Batch 1 · Aula penuh',        batch: 'batch-1' },
+  { src: 'images/batch-1-komunitas.jpg', caption: 'Batch 1 · Komunitas',         batch: 'batch-1' },
+  { src: 'images/batch-1-tim.jpg',       caption: 'Batch 1 · Tim inti',          batch: 'batch-1' },
+  { src: 'images/batch-3-kelas.jpg',     caption: 'Batch 3 · Sesi kelas',        batch: 'batch-3' },
+  { src: 'images/batch-3-mentoring.jpg', caption: 'Batch 3 · Mentoring',         batch: 'batch-3' },
+  { src: 'images/batch-3-demoday.jpg',   caption: 'Batch 3 · Platform & Demo Day', batch: 'batch-3' },
 ];
 
-const CHAT_SCRIPT = [
+const TEAM_MEMBERS = [
+  { file: 'daru.jpg',    name: 'Daru',    founder: true },
+  { file: 'ariqq.jpg',   name: 'Ariqq',   founder: false },
+  { file: 'azriel.jpg',  name: 'Azriel',  founder: false },
+  { file: 'fairuz.jpg',  name: 'Fairuz',  founder: false },
+  { file: 'hafidz.jpg',  name: 'Hafidz',  founder: false },
+  { file: 'ilham.jpg',   name: 'Ilham',   founder: false },
+  { file: 'maliki.jpg',  name: 'Maliki',  founder: false },
+  { file: 'naadir.jpg',  name: 'Naadir',  founder: false },
+  { file: 'navis.jpg',   name: 'Navis',   founder: false },
+  { file: 'okto.jpg',    name: 'Okto',    founder: false },
+  { file: 'rifki.jpg',   name: 'Rifki',   founder: false },
+  { file: 'sulthan.jpg', name: 'Sulthan', founder: false },
+  { file: 'zaki.jpg',    name: 'Zaki',    founder: false },
+];
+
+const CHAT_MESSAGES = [
   { role: 'user', text: 'AINA, cara urus iqomah pertama kali gimana ya?' },
-  { role: 'aina', text: 'Santai, aku pandu ya 🙌 Untuk iqomah pertama kamu perlu paspor, foto, dan formulir dari kampus. Mau aku buatin checklist urutan ngurusnya sekalian?' },
-  { role: 'user', text: 'Mau banget! Oh iya, kurs EGP ke Rupiah hari ini berapa?' },
-  { role: 'aina', text: 'Checklist meluncur 📋 Kurs terbaru aku ambilkan sekalian ya. Kalau ada dokumen yang bikin bingung, foto aja — kita urus bareng-bareng.' },
+  { role: 'aina', text: 'Santai, aku pandu ya 🙌 Siapkan paspor, foto, dan formulir dari kampus. Mau aku buatin checklist urutannya?' },
+  { role: 'user', text: 'Mau banget! Kurs EGP ke Rupiah hari ini berapa?' },
+  { role: 'aina', text: 'Checklist meluncur 📋 Kurs terbaru aku ambilkan sekalian. Bingung soal dokumen? Foto aja — kita urus bareng.' },
 ];
 
-// ============================================================
-// HELPERS
-// ============================================================
-function getChapter(idx: number) {
-  return CHAPTERS.find(c => idx >= c.start && idx <= c.end)!;
+// ── STATE ─────────────────────────────────────────────────────
+const SLIDES = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
+const TOTAL  = SLIDES.length;
+
+let currentSlide = 0;
+let hudVisible   = false;
+let timerRunning = false;
+let timerStart   = 0;
+let timerInterval: ReturnType<typeof setInterval> | null = null;
+let lightboxIdx  = 0;
+let lightboxOpen = false;
+let activeCascadeTimers: ReturnType<typeof setTimeout>[] = [];
+let chatPlaying  = false;
+let galleryFilter = 'all';
+
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isMobile = () => window.innerWidth < 768;
+
+// ── DOM REFS ──────────────────────────────────────────────────
+const progressBar   = document.getElementById('progress-bar')!;
+const chapterLabel  = document.getElementById('chapter-label')!;
+const hud           = document.getElementById('hud')!;
+const timerEl       = document.getElementById('timer')!;
+const slideTimeEl   = document.getElementById('slide-time')!;
+const dotsContainer = document.getElementById('dots')!;
+const allDots       = Array.from(dotsContainer.querySelectorAll<HTMLButtonElement>('.dot'));
+const galleryGrid   = document.getElementById('gallery-grid')!;
+const filterBtns    = Array.from(document.querySelectorAll<HTMLButtonElement>('.filter-chip'));
+const lightbox      = document.getElementById('lightbox')!;
+const lbImg         = document.getElementById('lb-img') as HTMLImageElement;
+const lbCaption     = document.getElementById('lb-caption')!;
+const lbClose       = document.getElementById('lb-close')!;
+const lbPrev        = document.getElementById('lb-prev')!;
+const lbNext        = document.getElementById('lb-next')!;
+const chatBody      = document.getElementById('chat-body')!;
+const teamGrid      = document.getElementById('team-grid')!;
+const slidesContainer = document.getElementById('slides-container')!;
+const nav           = document.getElementById('main-nav')!;
+const btnRestart    = document.getElementById('btn-restart');
+
+// ── UTILITIES ─────────────────────────────────────────────────
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
 }
 
-function getFragments(slideEl: HTMLElement): HTMLElement[] {
-  return Array.from(slideEl.querySelectorAll<HTMLElement>('.fragment'));
+// ── CASCADE SYSTEM ────────────────────────────────────────────
+function clearCascadeTimers() {
+  activeCascadeTimers.forEach(t => clearTimeout(t));
+  activeCascadeTimers = [];
 }
 
-// ============================================================
-// SLIDE NAVIGATION
-// ============================================================
-function goToSlide(n: number, instant = false) {
-  n = Math.max(0, Math.min(TOTAL - 1, n));
-  currentSlide = n;
-  fragmentIndex = -1;
+function resetCascade(slide: HTMLElement) {
+  slide.querySelectorAll<HTMLElement>('.ci').forEach(el => {
+    el.classList.remove('on');
+  });
+}
 
-  const target = SLIDES[n];
+function playCascade(slide: HTMLElement, instant = false) {
+  clearCascadeTimers();
+  resetCascade(slide);
 
-  if (!isMobile()) {
-    target.scrollIntoView({ behavior: instant ? 'instant' : 'smooth', block: 'start' });
-  } else {
-    target.scrollIntoView({ behavior: instant ? 'instant' : 'smooth' });
+  const items = Array.from(slide.querySelectorAll<HTMLElement>('.ci'));
+  const baseDelay = +(slide.dataset.delay ?? '400');
+
+  if (instant || reducedMotion || isMobile()) {
+    items.forEach(el => {
+      el.classList.add('on');
+      handleTrigger(el, slide, true);
+    });
+    return;
   }
+
+  items.forEach((el, i) => {
+    const t = setTimeout(() => {
+      el.classList.add('on');
+      handleTrigger(el, slide, false);
+    }, i * baseDelay + 150);
+    activeCascadeTimers.push(t);
+  });
+}
+
+function handleTrigger(el: HTMLElement, slide: HTMLElement, instant: boolean) {
+  const trigger = el.dataset.trigger;
+  if (!trigger) return;
+  if (trigger === 'chat') {
+    if (instant) {
+      // Show all bubbles instantly
+      chatBody.innerHTML = '';
+      CHAT_MESSAGES.forEach(m => {
+        const b = document.createElement('div');
+        b.className = `chat-bubble ${m.role}`;
+        b.textContent = m.text;
+        chatBody.appendChild(b);
+      });
+      chatBody.scrollTop = chatBody.scrollHeight;
+    } else {
+      setTimeout(() => playChat(), 300);
+    }
+  }
+  if (trigger === 'team') {
+    if (instant) {
+      teamGrid.querySelectorAll<HTMLElement>('.team-avatar').forEach(a => {
+        a.style.opacity = '1';
+        a.style.transform = 'scale(1)';
+        a.classList.add('appeared');
+      });
+    } else {
+      staggerTeam();
+    }
+  }
+}
+
+// ── GALLERY ────────────────────────────────────────────────────
+function renderGallery(filter: string, animate = true) {
+  const photos = filter === 'all' ? GALLERY_PHOTOS : GALLERY_PHOTOS.filter(p => p.batch === filter);
+  galleryGrid.innerHTML = '';
+
+  photos.forEach((photo, i) => {
+    const figure = document.createElement('figure');
+    figure.className = 'gallery-tile';
+    figure.setAttribute('role', 'listitem');
+    figure.setAttribute('tabindex', '0');
+    figure.setAttribute('aria-label', photo.caption);
+
+    const img = document.createElement('img');
+    img.src = photo.src;
+    img.alt = photo.caption;
+    img.loading = 'lazy';
+
+    const caption = document.createElement('figcaption');
+    caption.textContent = photo.caption;
+
+    figure.appendChild(img);
+    figure.appendChild(caption);
+    galleryGrid.appendChild(figure);
+
+    // Click/Enter opens lightbox
+    const openLb = () => openLightbox(GALLERY_PHOTOS.indexOf(photo));
+    figure.addEventListener('click', openLb);
+    figure.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLb(); } });
+
+    // Stagger cascade for gallery tiles
+    if (animate && !reducedMotion && !isMobile()) {
+      figure.style.opacity = '0';
+      figure.style.transform = 'scale(0.95)';
+      const t = setTimeout(() => {
+        figure.style.transition = 'opacity 350ms ease, transform 350ms ease';
+        figure.style.opacity = '1';
+        figure.style.transform = 'scale(1)';
+      }, i * 80 + 50);
+      activeCascadeTimers.push(t);
+    }
+  });
+}
+
+// ── CHAT ───────────────────────────────────────────────────────
+function playChat() {
+  if (chatPlaying) return;
+  chatPlaying = true;
+  chatBody.innerHTML = '';
+
+  const playMessage = (idx: number) => {
+    if (idx >= CHAT_MESSAGES.length) { chatPlaying = false; return; }
+
+    // Typing indicator
+    const typing = document.createElement('div');
+    typing.className = 'chat-typing';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+    chatBody.appendChild(typing);
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    const t = setTimeout(() => {
+      typing.remove();
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${CHAT_MESSAGES[idx].role}`;
+      bubble.textContent = CHAT_MESSAGES[idx].text;
+      chatBody.appendChild(bubble);
+      chatBody.scrollTop = chatBody.scrollHeight;
+      activeCascadeTimers.push(setTimeout(() => playMessage(idx + 1), 900));
+    }, 900);
+    activeCascadeTimers.push(t);
+  };
+
+  playMessage(0);
+}
+
+function replayChat() {
+  chatPlaying = false;
+  clearCascadeTimers();
+  chatBody.innerHTML = '';
+  playCascade(SLIDES[10]);
+}
+
+// ── TEAM STAGGER ───────────────────────────────────────────────
+function buildTeamGrid() {
+  teamGrid.innerHTML = '';
+  TEAM_MEMBERS.forEach(member => {
+    const div = document.createElement('div');
+    div.className = 'team-avatar';
+
+    const imgSize = member.founder ? 155 : 130;
+    const wrap = document.createElement('div');
+    wrap.className = `avatar-img-wrap${member.founder ? ' founder' : ''}`;
+    wrap.style.width = `${imgSize}px`;
+    wrap.style.height = `${imgSize}px`;
+
+    const img = document.createElement('img');
+    img.src = `images/team/${member.file}`;
+    img.alt = member.name;
+    img.loading = 'lazy';
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.onerror = () => { img.style.display = 'none'; };
+    wrap.appendChild(img);
+
+    const nameEl = document.createElement('p');
+    nameEl.className = 'avatar-name';
+    nameEl.textContent = member.name;
+
+    div.appendChild(wrap);
+    div.appendChild(nameEl);
+
+    if (member.founder) {
+      const badge = document.createElement('span');
+      badge.className = 'founder-badge';
+      badge.textContent = 'FOUNDER';
+      div.appendChild(badge);
+    }
+
+    teamGrid.appendChild(div);
+  });
+}
+
+function staggerTeam() {
+  const avatars = Array.from(teamGrid.querySelectorAll<HTMLElement>('.team-avatar'));
+  avatars.forEach((avatar, i) => {
+    const t = setTimeout(() => avatar.classList.add('appeared'), i * 100);
+    activeCascadeTimers.push(t);
+  });
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function goToSlide(n: number, replay = false) {
+  const target = clamp(n, 0, TOTAL - 1);
+  if (target === currentSlide && !replay) return;
+
+  // Reset cascade on leaving slide (unless replaying)
+  if (!replay) resetCascade(SLIDES[currentSlide]);
+  currentSlide = target;
+
+  // Reset chat state when leaving slide 10
+  chatPlaying = false;
+
+  // Scroll slide into view
+  SLIDES[currentSlide].scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
 
   updateUI();
 
-  // On mobile / reduced-motion: show all fragments immediately
-  if (isMobile() || reducedMotion) {
-    getFragments(target).forEach(f => f.classList.add('revealed'));
-    fragmentIndex = getFragments(target).length - 1;
+  // Reset gallery tiles opacity (no cascade pending)
+  if (currentSlide === 7) {
+    renderGallery(galleryFilter, !reducedMotion && !isMobile());
   }
 
-  // Slide-specific behaviours
-  if (n === 8) setTimeout(playChat, 700);
+  // Play cascade
+  playCascade(SLIDES[currentSlide], reducedMotion || isMobile());
+
+  // Start presenter timer on first advance
+  if (!timerRunning && !replay) startTimer();
 }
 
-function nextSlide() {
-  goToSlide(currentSlide + 1);
-}
-function prevSlide() {
-  goToSlide(currentSlide - 1);
-}
-
-// ============================================================
-// FRAGMENT SYSTEM
-// ============================================================
-function revealNextFragment(): boolean {
-  const slide = SLIDES[currentSlide];
-  const frags = getFragments(slide);
-
-  // Find first unrevealed fragment
-  const nextIdx = frags.findIndex(f => !f.classList.contains('revealed'));
-  if (nextIdx === -1) return false;
-
-  const nextFrag = frags[nextIdx];
-  const group = nextFrag.dataset.fragGroup;
-
-  if (group !== undefined) {
-    // Reveal ALL fragments in this group at once
-    frags.forEach((f, i) => {
-      if (f.dataset.fragGroup === group) {
-        f.classList.add('revealed');
-        if (i > fragmentIndex) fragmentIndex = i;
-      }
-    });
-  } else {
-    nextFrag.classList.add('revealed');
-    fragmentIndex = nextIdx;
+function replayCurrentSlide() {
+  chatPlaying = false;
+  if (currentSlide === 7) {
+    renderGallery(galleryFilter, !reducedMotion && !isMobile());
   }
-
-  // Slide 12: trigger team stagger when team-grid fragment is revealed
-  if (currentSlide === 12 && nextFrag.id === 'team-grid') {
-    staggerTeam();
-  }
-
-  return true;
+  playCascade(SLIDES[currentSlide]);
 }
 
-function hideLastFragment(): boolean {
-  if (fragmentIndex < 0) return false;
-  const slide = SLIDES[currentSlide];
-  const frags = getFragments(slide);
-
-  const curFrag = frags[fragmentIndex];
-  const group = curFrag?.dataset.fragGroup;
-
-  if (group !== undefined) {
-    // Hide ALL in the same group
-    frags.forEach(f => {
-      if (f.dataset.fragGroup === group) f.classList.remove('revealed');
-    });
-    // Set fragmentIndex to just before the first of this group
-    const firstInGroup = frags.findIndex(f => f.dataset.fragGroup === group);
-    fragmentIndex = firstInGroup - 1;
-  } else {
-    frags[fragmentIndex].classList.remove('revealed');
-    fragmentIndex--;
-  }
-
-  return true;
-}
-
-// ============================================================
-// NEXT / PREV ACTION
-// ============================================================
-function nextAction() {
-  if (!timerStarted) startTimerClock();
-  if (lightboxOpen) return;
-
-  const hadFragment = revealNextFragment();
-  if (!hadFragment) nextSlide();
-}
-
-function prevAction() {
-  if (lightboxOpen) return;
-  if (!hideLastFragment()) prevSlide();
-}
-
-// ============================================================
-// UI UPDATES
-// ============================================================
+// ── UI UPDATES ────────────────────────────────────────────────
 function updateUI() {
   updateProgress();
   updateDots();
   updateChapterLabel();
-  updateNavScroll();
+  updateSlideTime();
 }
 
 function updateProgress() {
-  const pct = TOTAL > 1 ? (currentSlide / (TOTAL - 1)) * 100 : 0;
-  progressBar.style.width = pct + '%';
+  progressBar.style.width = `${((currentSlide) / (TOTAL - 1)) * 100}%`;
 }
 
 function updateDots() {
-  document.querySelectorAll<HTMLButtonElement>('[data-slide]').forEach(dot => {
-    dot.classList.toggle('active', +dot.dataset.slide! === currentSlide);
+  allDots.forEach(dot => {
+    const idx = +(dot.dataset.slide ?? -1);
+    dot.classList.toggle('active', idx === currentSlide);
   });
 }
 
 function updateChapterLabel() {
-  const ch = getChapter(currentSlide);
-  chapterLabel.textContent = ch.label;
+  const chapter = CHAPTERS.find(c => currentSlide >= c.start && currentSlide <= c.end);
+  if (chapter) chapterLabel.textContent = chapter.label;
+  else chapterLabel.textContent = '';
 }
 
-function updateNavScroll() {
-  const scrollTop = isMobile()
-    ? window.scrollY
-    : slidesContainer.scrollTop;
-  mainNav.classList.toggle('scrolled', scrollTop > 20);
+function updateSlideTime() {
+  const t = SLIDE_TIMES[currentSlide] ?? 1;
+  slideTimeEl.textContent = `±${t} MENIT`;
 }
 
-// ============================================================
-// TIMER
-// ============================================================
-function startTimerClock() {
-  if (timerStarted) return;
-  timerStarted = true;
-  timerStart = Date.now();
-  timerInterval = setInterval(tickTimer, 1000);
+// ── TIMER ─────────────────────────────────────────────────────
+function startTimer() {
+  timerRunning = true;
+  timerStart   = Date.now();
+  timerInterval = setInterval(tickTimer, 500);
 }
 
 function tickTimer() {
-  if (!timerStart) return;
   const elapsed = Math.floor((Date.now() - timerStart) / 1000);
-  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
-  const ss = String(elapsed % 60).padStart(2, '0');
-  timerEl.textContent = `${mm}:${ss} / 30:00`;
+  const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  timerEl.textContent = `${m}:${s} / 30:00`;
   timerEl.classList.toggle('amber', elapsed >= 25 * 60 && elapsed < 30 * 60);
-  timerEl.classList.toggle('red', elapsed >= 30 * 60);
+  timerEl.classList.toggle('red',   elapsed >= 30 * 60);
 }
 
-function toggleTimer() {
-  if (!timerStarted) {
-    startTimerClock();
-    timerVisible = true;
-    timerEl.classList.add('visible');
-  } else {
-    timerVisible = !timerVisible;
-    timerEl.classList.toggle('visible', timerVisible);
-  }
+function toggleHud() {
+  hudVisible = !hudVisible;
+  hud.classList.toggle('visible', hudVisible);
+  if (hudVisible && !timerRunning) startTimer();
 }
 
-// ============================================================
-// FULLSCREEN
-// ============================================================
-function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(() => {});
-  } else {
-    document.exitFullscreen().catch(() => {});
-  }
-}
-
-// ============================================================
-// KEYBOARD
-// ============================================================
+// ── KEYBOARD ─────────────────────────────────────────────────
 document.addEventListener('keydown', (e: KeyboardEvent) => {
   if (lightboxOpen) {
-    handleLightboxKey(e);
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': lbNavigate(1); break;
+      case 'ArrowLeft':  case 'ArrowUp':   lbNavigate(-1); break;
+      case 'Escape': closeLightbox(); break;
+    }
     return;
   }
-
-  // Don't intercept when user is typing in an input
-  const tag = (e.target as HTMLElement).tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
   switch (e.key) {
     case ' ':
     case 'ArrowDown':
     case 'ArrowRight':
-    case 'PageDown':
       e.preventDefault();
-      nextAction();
+      goToSlide(currentSlide + 1);
       break;
     case 'ArrowUp':
     case 'ArrowLeft':
-    case 'PageUp':
       e.preventDefault();
-      prevAction();
+      goToSlide(currentSlide - 1);
       break;
     case 'Home':
       e.preventDefault();
@@ -302,294 +414,166 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
       break;
     case 't':
     case 'T':
-      toggleTimer();
+      toggleHud();
       break;
     case 'r':
     case 'R':
-      if (currentSlide === 8) replayChat();
+      replayCurrentSlide();
       break;
   }
 });
 
-// ============================================================
-// TOUCH (swipe up/down for slide navigation on desktop)
-// ============================================================
-slidesContainer.addEventListener('touchstart', (e) => {
-  touchStartY = e.touches[0].clientY;
-}, { passive: true });
+// Click on slides-container advances
+slidesContainer.addEventListener('click', (e: MouseEvent) => {
+  if (lightboxOpen) return;
+  const target = e.target as HTMLElement;
+  // Don't advance if clicking interactive elements
+  if (
+    target.closest('button') ||
+    target.closest('a') ||
+    target.closest('.gallery-tile') ||
+    target.closest('.filter-chip') ||
+    target.closest('#chat-mockup')
+  ) return;
+  goToSlide(currentSlide + 1);
+});
 
-slidesContainer.addEventListener('touchend', (e) => {
-  if (isMobile()) return; // mobile uses native scroll
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  if (Math.abs(dy) > 50) {
-    if (dy < 0) nextAction();
-    else prevAction();
+// ── FULLSCREEN ────────────────────────────────────────────────
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
   }
-}, { passive: true });
+}
 
-// ============================================================
-// CLICK TO ADVANCE
-// ============================================================
-SLIDES.forEach((slide, idx) => {
-  slide.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    // Don't advance when clicking interactive elements
-    if (
-      target.closest('.gallery-item') ||
-      target.closest('.filter-chip') ||
-      target.closest('a') ||
-      target.closest('button') ||
-      target.closest('.lightbox-btn')
-    ) return;
-    if (currentSlide === idx) nextAction();
-  });
-});
-
-// ============================================================
-// DOT CLICKS
-// ============================================================
-document.querySelectorAll<HTMLButtonElement>('[data-slide]').forEach(dot => {
-  dot.addEventListener('click', () => goToSlide(+dot.dataset.slide!));
-});
-
-// ============================================================
-// NAV LINK CLICKS
-// ============================================================
+// ── NAV LINKS ─────────────────────────────────────────────────
 document.querySelectorAll<HTMLElement>('[data-goto]').forEach(el => {
-  el.addEventListener('click', (e) => {
+  el.addEventListener('click', e => {
     e.preventDefault();
-    goToSlide(+el.dataset.goto!);
+    const idx = +(el.dataset.goto ?? 0);
+    goToSlide(idx);
   });
 });
 
-// ============================================================
-// NAV SCROLL EFFECT
-// ============================================================
-slidesContainer.addEventListener('scroll', updateNavScroll, { passive: true });
-window.addEventListener('scroll', updateNavScroll, { passive: true });
-
-// ============================================================
-// INTERSECTION OBSERVER (track active slide on desktop scroll)
-// ============================================================
-const slideObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-      const idx = +((entry.target as HTMLElement).dataset.idx ?? -1);
-      if (idx === -1 || idx === currentSlide) return;
-      currentSlide = idx;
-      fragmentIndex = isMobile() ? getFragments(SLIDES[idx]).length - 1 : -1;
-      updateUI();
-      if (idx === 8) setTimeout(playChat, 600);
-    }
-  });
-}, {
-  root: isMobile() ? null : slidesContainer,
-  threshold: 0.5,
-});
-
-SLIDES.forEach(slide => slideObserver.observe(slide));
-
-// ============================================================
-// MOBILE: IntersectionObserver for auto-revealing fragments
-// ============================================================
-if (isMobile() || reducedMotion) {
-  const fragObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const slide = entry.target as HTMLElement;
-        getFragments(slide).forEach(f => f.classList.add('revealed'));
-        const idx = +(slide.dataset.idx ?? -1);
-        if (idx === 8) setTimeout(playChat, 600);
-        if (idx === 12) staggerTeam();
-      }
-    });
-  }, { threshold: 0.2 });
-
-  SLIDES.forEach(slide => fragObserver.observe(slide));
-}
-
-// ============================================================
-// GALLERY
-// ============================================================
-let currentFilter = 'all';
-const galleryGrid = document.getElementById('gallery-grid')!;
-
-function renderGallery() {
-  const filtered = currentFilter === 'all'
-    ? galleryPhotos
-    : galleryPhotos.filter(p => p.batch === currentFilter);
-
-  galleryGrid.innerHTML = '';
-  filtered.forEach(photo => {
-    const globalIdx = galleryPhotos.indexOf(photo);
-    const item = document.createElement('div');
-    item.className = 'gallery-item';
-    item.setAttribute('role', 'listitem');
-    item.setAttribute('tabindex', '0');
-    item.setAttribute('aria-label', photo.caption);
-    item.innerHTML = `
-      <img src="${photo.src}" alt="${photo.caption}" loading="lazy" />
-      <div class="gallery-caption">${photo.caption}</div>
-    `;
-    item.addEventListener('click', () => openLightbox(globalIdx));
-    item.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(globalIdx); }
-    });
-    galleryGrid.appendChild(item);
-  });
-}
-
-document.querySelectorAll<HTMLButtonElement>('.filter-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    currentFilter = chip.dataset.filter!;
-    renderGallery();
+dotsContainer.querySelectorAll<HTMLButtonElement>('.dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    const idx = +(dot.dataset.slide ?? 0);
+    goToSlide(idx);
   });
 });
 
-// ============================================================
-// LIGHTBOX
-// ============================================================
-const lightbox = document.getElementById('lightbox')!;
-const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
-const lightboxCaption = document.getElementById('lightbox-caption')!;
+btnRestart?.addEventListener('click', () => goToSlide(0));
 
+// Scroll-based nav hairline
+slidesContainer.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', slidesContainer.scrollTop > 10);
+});
+
+// ── GALLERY ───────────────────────────────────────────────────
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    galleryFilter = btn.dataset.filter ?? 'all';
+    renderGallery(galleryFilter, !reducedMotion && !isMobile());
+  });
+});
+
+// ── LIGHTBOX ──────────────────────────────────────────────────
 function openLightbox(idx: number) {
-  lightboxIndex = idx;
+  lightboxIdx = idx;
   lightboxOpen = true;
+  lightbox.removeAttribute('hidden');
+  showLightboxPhoto(idx);
   document.body.style.overflow = 'hidden';
-  updateLightboxContent();
-  lightbox.classList.add('open');
-  lightbox.focus();
 }
 
 function closeLightbox() {
   lightboxOpen = false;
+  lightbox.setAttribute('hidden', '');
   document.body.style.overflow = '';
-  lightbox.classList.remove('open');
 }
 
-function updateLightboxContent() {
-  const photo = galleryPhotos[lightboxIndex];
-  lightboxImg.src = photo.src;
-  lightboxImg.alt = photo.caption;
-  lightboxCaption.textContent = photo.caption;
+function showLightboxPhoto(idx: number) {
+  const p = GALLERY_PHOTOS[idx];
+  if (!p) return;
+  lbImg.src = p.src;
+  lbImg.alt = p.caption;
+  lbCaption.textContent = p.caption;
 }
 
-function lightboxNext() {
-  lightboxIndex = (lightboxIndex + 1) % galleryPhotos.length;
-  updateLightboxContent();
-}
-function lightboxPrev() {
-  lightboxIndex = (lightboxIndex - 1 + galleryPhotos.length) % galleryPhotos.length;
-  updateLightboxContent();
+function lbNavigate(dir: number) {
+  lightboxIdx = (lightboxIdx + dir + GALLERY_PHOTOS.length) % GALLERY_PHOTOS.length;
+  showLightboxPhoto(lightboxIdx);
 }
 
-function handleLightboxKey(e: KeyboardEvent) {
-  switch (e.key) {
-    case 'ArrowRight': e.preventDefault(); lightboxNext(); break;
-    case 'ArrowLeft':  e.preventDefault(); lightboxPrev(); break;
-    case 'Escape':     closeLightbox(); break;
-  }
-}
+lbClose.addEventListener('click', closeLightbox);
+lbPrev.addEventListener('click', () => lbNavigate(-1));
+lbNext.addEventListener('click', () => lbNavigate(1));
 
-document.getElementById('lightbox-close')?.addEventListener('click', closeLightbox);
-document.getElementById('lightbox-next')?.addEventListener('click', lightboxNext);
-document.getElementById('lightbox-prev')?.addEventListener('click', lightboxPrev);
-
-lightbox.addEventListener('click', (e) => {
-  if (e.target === lightbox) closeLightbox();
+// Swipe support for lightbox
+let lbTouchStart = 0;
+lightbox.addEventListener('touchstart', e => { lbTouchStart = e.touches[0].clientX; }, { passive: true });
+lightbox.addEventListener('touchend', e => {
+  const dx = lbTouchStart - e.changedTouches[0].clientX;
+  if (Math.abs(dx) > 40) lbNavigate(dx > 0 ? 1 : -1);
 });
 
-// Swipe in lightbox
-lightbox.addEventListener('touchstart', (e) => { lbTouchX = e.touches[0].clientX; }, { passive: true });
-lightbox.addEventListener('touchend', (e) => {
-  const dx = e.changedTouches[0].clientX - lbTouchX;
-  if (Math.abs(dx) > 50) dx > 0 ? lightboxPrev() : lightboxNext();
-}, { passive: true });
-
-// ============================================================
-// CHAT ANIMATION
-// ============================================================
-const chatMessages = document.getElementById('chat-messages');
-let chatPlaying = false;
-
-function clearChatTimeouts() {
-  chatTimeouts.forEach(t => clearTimeout(t));
-  chatTimeouts = [];
-}
-
-function playChat() {
-  if (!chatMessages) return;
-  clearChatTimeouts();
-  chatMessages.innerHTML = '';
-  chatPlaying = true;
-
-  let delay = 500;
-  CHAT_SCRIPT.forEach(msg => {
-    // Show typing indicator
-    const t1 = setTimeout(() => {
-      if (!chatMessages) return;
-      const typing = document.createElement('div');
-      typing.className = `chat-bubble ${msg.role} typing-indicator`;
-      typing.id = 'typing-temp';
-      typing.innerHTML = '<span></span><span></span><span></span>';
-      chatMessages.appendChild(typing);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, delay);
-    chatTimeouts.push(t1);
-    delay += 900;
-
-    // Replace with actual bubble
-    const t2 = setTimeout(() => {
-      if (!chatMessages) return;
-      document.getElementById('typing-temp')?.remove();
-      const bubble = document.createElement('div');
-      bubble.className = `chat-bubble ${msg.role}`;
-      bubble.textContent = msg.text;
-      chatMessages.appendChild(bubble);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, delay);
-    chatTimeouts.push(t2);
-    delay += 500;
+// ── INTERSECTION OBSERVER (desktop slide tracking + mobile) ──
+const slideObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const idx = +(( entry.target as HTMLElement).dataset.idx ?? -1);
+    if (idx === -1 || idx === currentSlide) return;
+    currentSlide = idx;
+    updateUI();
+    if (!isMobile()) playCascade(SLIDES[idx]);
+    if (idx === 7 && !isMobile()) renderGallery(galleryFilter, true);
   });
+}, {
+  root: isMobile() ? null : slidesContainer,
+  threshold: 0.55,
+});
+
+SLIDES.forEach(slide => slideObserver.observe(slide));
+
+// Mobile: show content immediately as slides scroll into view
+if (isMobile()) {
+  const mobileObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const slide = entry.target as HTMLElement;
+        slide.querySelectorAll<HTMLElement>('.ci').forEach(el => el.classList.add('on'));
+        const idx = +(slide.dataset.idx ?? -1);
+        if (idx === 7) renderGallery('all', false);
+        if (idx === 10) {
+          chatBody.innerHTML = '';
+          CHAT_MESSAGES.forEach(m => {
+            const b = document.createElement('div');
+            b.className = `chat-bubble ${m.role}`;
+            b.textContent = m.text;
+            chatBody.appendChild(b);
+          });
+        }
+        if (idx === 14) {
+          teamGrid.querySelectorAll<HTMLElement>('.team-avatar').forEach(a => {
+            a.style.opacity = '1';
+            a.style.transform = 'scale(1)';
+            a.classList.add('appeared');
+          });
+        }
+      }
+    });
+  }, { threshold: 0.15 });
+
+  SLIDES.forEach(slide => mobileObs.observe(slide));
 }
 
-function replayChat() {
-  playChat();
-}
+// ── INIT ──────────────────────────────────────────────────────
+buildTeamGrid();
+renderGallery('all', false);
 
-// ============================================================
-// TEAM STAGGER
-// ============================================================
-function staggerTeam() {
-  if (teamStaggerDone && !reducedMotion) return;
-  teamStaggerDone = true;
-  const avatars = document.querySelectorAll<HTMLElement>('.team-avatar');
-  if (reducedMotion) {
-    avatars.forEach(a => a.classList.add('visible'));
-    return;
-  }
-  avatars.forEach((avatar, i) => {
-    setTimeout(() => avatar.classList.add('visible'), i * 60);
-  });
-}
-
-// ============================================================
-// FRAGMENT PAIRING (curriculum & feature slides)
-// Slides 8 (curriculum) and 11 (features) use data-frag-group
-// to pair consecutive fragments. The reveal logic already
-// handles this via the data-frag-group attribute.
-// ============================================================
-
-// ============================================================
-// INIT
-// ============================================================
-renderGallery();
-
-// Set initial slide without animation
-goToSlide(0, true);
-
-// Make slide 10 chat start automatically when visible via observer
-// (handled by the IntersectionObserver above)
+// Kick off cascade for slide 0
+updateUI();
+playCascade(SLIDES[0], reducedMotion || isMobile());
