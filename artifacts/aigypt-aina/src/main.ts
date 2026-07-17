@@ -490,6 +490,30 @@ slidesContainer.addEventListener('scroll', () => {
   nav.classList.toggle('scrolled', slidesContainer.scrollTop > 10);
 });
 
+// ── NAV HIDE & SEEK ───────────────────────────────────────────
+// Auto-hides after 3s of inactivity; reappears on mouse near top
+// or any keyboard interaction, then hides again after 3s.
+let navHideTimer: ReturnType<typeof setTimeout>;
+
+function showNav() {
+  nav.classList.remove('nav-hidden');
+  clearTimeout(navHideTimer);
+  navHideTimer = setTimeout(() => nav.classList.add('nav-hidden'), 3000);
+}
+
+// Trigger zone: top 80px of screen reveals navbar
+document.addEventListener('mousemove', (e: MouseEvent) => {
+  if (e.clientY < 80) {
+    showNav();
+  }
+});
+
+// Any key interaction also briefly reveals it
+document.addEventListener('keydown', showNav, { capture: true });
+
+// Start the first hide timer after 3s on load
+navHideTimer = setTimeout(() => nav.classList.add('nav-hidden'), 3000);
+
 // ── GALLERY FILTERS ───────────────────────────────────────────
 filterBtns.forEach(btn => {
   btn.addEventListener('click', () => {

@@ -64,9 +64,10 @@ body {
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 2px solid transparent;
   z-index: 100;
-  transition: border-color 300ms;
+  transition: border-color 300ms, transform 350ms cubic-bezier(.4,0,.2,1);
 }
-#main-nav.scrolled { border-bottom-color: var(--border); }
+#main-nav.nav-hidden { transform: translateY(-100%); }
+#main-nav.scrolled  { border-bottom-color: var(--border); }
 
 .nav-brand {
   display: flex;
