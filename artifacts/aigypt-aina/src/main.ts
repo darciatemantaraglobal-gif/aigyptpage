@@ -24,20 +24,13 @@ const GALLERY_PHOTOS = [
   { src: 'images/batch-3-demoday.jpg',   caption: 'Batch 3 · Platform & Demo Day', batch: 'batch-3' },
 ];
 
-const TEAM_MEMBERS = [
-  { file: 'daru.jpg',    name: 'Daru',    founder: true },
-  { file: 'ariqq.jpg',   name: 'Ariqq',   founder: false },
-  { file: 'azriel.jpg',  name: 'Azriel',  founder: false },
-  { file: 'fairuz.jpg',  name: 'Fairuz',  founder: false },
-  { file: 'hafidz.jpg',  name: 'Hafidz',  founder: false },
-  { file: 'ilham.jpg',   name: 'Ilham',   founder: false },
-  { file: 'maliki.jpg',  name: 'Maliki',  founder: false },
-  { file: 'naadir.jpg',  name: 'Naadir',  founder: false },
-  { file: 'navis.jpg',   name: 'Navis',   founder: false },
-  { file: 'okto.jpg',    name: 'Okto',    founder: false },
-  { file: 'rifki.jpg',   name: 'Rifki',   founder: false },
-  { file: 'sulthan.jpg', name: 'Sulthan', founder: false },
-  { file: 'zaki.jpg',    name: 'Zaki',    founder: false },
+const TEAM_GROUPS: { role: string; members: { file: string; name: string }[] }[] = [
+  { role: 'Founder',          members: [ {file:'daru.jpg',   name:'Daru'} ] },
+  { role: 'Ketua AINA',       members: [ {file:'maliki.jpg', name:'Maliki'}, {file:'fairuz.jpg', name:'Fairuz'} ] },
+  { role: 'External Lead',    members: [ {file:'ariqq.jpg',  name:'Ariqq'},  {file:'haikal.jpg', name:'Haikal'} ] },
+  { role: 'Assist Developer', members: [ {file:'ilham.jpg',  name:'Ilham'},  {file:'atila.jpg',  name:'Atila'} ] },
+  { role: 'Administrasi',     members: [ {file:'okto.jpg',   name:'Okto'},   {file:'azriel.jpg', name:'Azriel'} ] },
+  { role: 'Media',            members: [ {file:'arnaf.png',  name:'Arnaf'},  {file:'navis.jpg',  name:'Navis'} ] },
 ];
 
 const CHAT_MESSAGES = [
@@ -148,10 +141,10 @@ function handleTrigger(el: HTMLElement, slide: HTMLElement, instant: boolean) {
   }
   if (trigger === 'team') {
     if (instant) {
-      teamGrid.querySelectorAll<HTMLElement>('.team-avatar').forEach(a => {
-        a.style.opacity = '1';
-        a.style.transform = 'scale(1)';
-        a.classList.add('appeared');
+      teamGrid.querySelectorAll<HTMLElement>('.division-box').forEach(box => {
+        box.style.transition = 'none';
+        box.style.opacity = '1';
+        box.style.transform = 'translateY(0)';
       });
     } else {
       staggerTeam();
@@ -241,49 +234,88 @@ function replayChat() {
 }
 
 // ── TEAM STAGGER ───────────────────────────────────────────────
-function buildTeamGrid() {
-  teamGrid.innerHTML = '';
-  TEAM_MEMBERS.forEach(member => {
-    const div = document.createElement('div');
-    div.className = 'team-avatar';
+function buildDivisionBox(group: { role: string; members: { file: string; name: string }[] }, isFounder: boolean): HTMLElement {
+  const box = document.createElement('div');
+  box.className = `division-box${isFounder ? ' founder-box' : ''}`;
+  box.style.opacity = '0';
+  box.style.transform = 'translateY(16px)';
 
-    const imgSize = member.founder ? 120 : 96;
-    const wrap = document.createElement('div');
-    wrap.className = `avatar-img-wrap${member.founder ? ' founder' : ''}`;
-    wrap.style.width = `${imgSize}px`;
-    wrap.style.height = `${imgSize}px`;
+  const roleEl = document.createElement('p');
+  roleEl.className = 'division-role';
+  roleEl.textContent = group.role;
+  box.appendChild(roleEl);
+
+  const membersEl = document.createElement('div');
+  membersEl.className = 'division-members';
+
+  group.members.forEach(member => {
+    const memberEl = document.createElement('div');
+    memberEl.className = 'division-member';
+    const avatarSize = isFounder ? 120 : 104;
 
     const img = document.createElement('img');
     img.src = `images/team/${member.file}`;
     img.alt = member.name;
     img.loading = 'lazy';
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.onerror = () => { img.style.display = 'none'; };
-    wrap.appendChild(img);
+    img.className = 'division-avatar-img';
+    img.style.width = `${avatarSize}px`;
+    img.style.height = `${avatarSize}px`;
+
+    const fallback = document.createElement('div');
+    fallback.className = 'division-avatar-fallback';
+    fallback.style.width = `${avatarSize}px`;
+    fallback.style.height = `${avatarSize}px`;
+    fallback.style.display = 'none';
+    fallback.textContent = member.name.charAt(0).toUpperCase();
+
+    img.onerror = () => {
+      img.style.display = 'none';
+      fallback.style.display = 'flex';
+    };
 
     const nameEl = document.createElement('p');
-    nameEl.className = 'avatar-name';
+    nameEl.className = 'division-member-name';
     nameEl.textContent = member.name;
 
-    div.appendChild(wrap);
-    div.appendChild(nameEl);
+    memberEl.appendChild(img);
+    memberEl.appendChild(fallback);
+    memberEl.appendChild(nameEl);
+    membersEl.appendChild(memberEl);
+  });
 
-    if (member.founder) {
-      const badge = document.createElement('span');
-      badge.className = 'founder-badge';
-      badge.textContent = 'FOUNDER';
-      div.appendChild(badge);
+  box.appendChild(membersEl);
+  return box;
+}
+
+function buildTeamGrid() {
+  teamGrid.innerHTML = '';
+
+  TEAM_GROUPS.forEach((group, i) => {
+    if (i === 0) {
+      const founderRow = document.createElement('div');
+      founderRow.className = 'founder-row';
+      founderRow.appendChild(buildDivisionBox(group, true));
+      teamGrid.appendChild(founderRow);
+    } else {
+      let divGrid = teamGrid.querySelector<HTMLElement>('.division-grid');
+      if (!divGrid) {
+        divGrid = document.createElement('div');
+        divGrid.className = 'division-grid';
+        teamGrid.appendChild(divGrid);
+      }
+      divGrid.appendChild(buildDivisionBox(group, false));
     }
-
-    teamGrid.appendChild(div);
   });
 }
 
 function staggerTeam() {
-  const avatars = Array.from(teamGrid.querySelectorAll<HTMLElement>('.team-avatar'));
-  avatars.forEach((avatar, i) => {
-    const t = setTimeout(() => avatar.classList.add('appeared'), i * 100);
+  const boxes = Array.from(teamGrid.querySelectorAll<HTMLElement>('.division-box'));
+  boxes.forEach((box, i) => {
+    const t = setTimeout(() => {
+      box.style.transition = 'opacity 320ms ease, transform 320ms ease';
+      box.style.opacity = '1';
+      box.style.transform = 'translateY(0)';
+    }, i * 100);
     activeCascadeTimers.push(t);
   });
 }
@@ -463,7 +495,7 @@ dotsContainer.querySelectorAll<HTMLButtonElement>('.dot').forEach(dot => {
   });
 });
 
-btnRestart?.addEventListener('click', () => goToSlide(0));
+// btn-restart removed (replaced by Instagram CTA)
 
 // Scroll-based nav hairline
 slidesContainer.addEventListener('scroll', () => {
@@ -557,10 +589,10 @@ if (isMobile()) {
           });
         }
         if (idx === 14) {
-          teamGrid.querySelectorAll<HTMLElement>('.team-avatar').forEach(a => {
-            a.style.opacity = '1';
-            a.style.transform = 'scale(1)';
-            a.classList.add('appeared');
+          teamGrid.querySelectorAll<HTMLElement>('.division-box').forEach(box => {
+            box.style.transition = 'none';
+            box.style.opacity = '1';
+            box.style.transform = 'translateY(0)';
           });
         }
       }

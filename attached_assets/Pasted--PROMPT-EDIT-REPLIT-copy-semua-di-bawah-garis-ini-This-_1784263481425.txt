@@ -1,0 +1,63 @@
+# PROMPT EDIT REPLIT — copy semua di bawah garis ini
+
+---
+
+This is an **EDIT task, not a rebuild.** Only modify these files inside `artifacts/aigypt-aina/`: `index.html`, `src/main.ts`, `src/style.css` (and copy one image file as instructed). Do not touch anything else, do not change the stack, do not redesign what isn't listed. Keep all existing design tokens (Plus Jakarta Sans, black-purple palette, auto-cascade system) and all videotron legibility rules (big text, 2px borders, bright muted color, 5% safe area).
+
+Make exactly these 5 changes:
+
+## 1 — Closing slide (`#s15`): replace WhatsApp CTA with a big Instagram CTA
+- **Delete** the WhatsApp button (`.btn-primary` linking to `wa.me/6281311506025`) and **delete** the "Kembali ke awal ↑" button (`#btn-restart`, including its JS listener in `main.ts`).
+- Replace them with one centered Instagram block, big and clean:
+  - Small label (uppercase, weight 700, letter-spacing .18em, `--muted`): `TERHUBUNG DENGAN KAMI`
+  - Below it, one huge clickable line (single `<a>` → `https://instagram.com/ai.gypt`, target _blank): an Instagram glyph (inline SVG outline, ~44px, currentColor) + the handle `@ai.gypt` in gradient text, weight 800, size `clamp(40px,5vw,72px)`. Vertically centered together, gap 18px.
+  - Hover/focus: slight rise (translateY(-3px)) + brighter glow `0 12px 48px rgba(124,58,237,.45)`. Big focus-visible outline.
+  - It must read clearly from far away — this is the final thing 10,000 people see.
+- Also update the nav pill `Gabung →` (`.nav-cta`) to point to `https://instagram.com/ai.gypt` instead of the old WhatsApp link, so no dead contact remains.
+
+## 2 — Team slide (`#s14`): regroup into division boxes
+- Copy `images/partners/arnaf.png` → `images/team/arnaf.png` (Arnaf is a person, not a partner).
+- In `main.ts`, replace the flat `TEAM_MEMBERS` array with grouped data, and rewrite the team render to output **division boxes**:
+
+```
+TEAM_GROUPS = [
+  { role: 'Founder',         members: [ {file:'daru.jpg',   name:'Daru'} ] },
+  { role: 'Ketua AINA',      members: [ {file:'maliki.jpg', name:'Maliki'}, {file:'fairuz.jpg', name:'Fairuz'} ] },
+  { role: 'External Lead',   members: [ {file:'ariqq.jpg',  name:'Ariqq'},  {file:'haikal.jpg', name:'Haikal'} ] },
+  { role: 'Assist Developer',members: [ {file:'ilham.jpg',  name:'Ilham'},  {file:'atila.jpg',  name:'Atila'} ] },
+  { role: 'Administrasi',    members: [ {file:'okto.jpg',   name:'Okto'},   {file:'azriel.jpg', name:'Azril'} ] },
+  { role: 'Media',           members: [ {file:'arnaf.png',  name:'Arnaf'},  {file:'navis.jpg',  name:'Navis'} ] },
+]
+```
+
+- Removed from the team entirely: Zaki, Sulthan, Hafidz, Naadir, Rifki. The old `FOUNDER` badge is **removed** — Daru gets no special badge or ring; every card shows the role caption instead.
+- **Box design (all boxes identical):** `--surface` background, 2px `--border`, radius 18px, padding 26–30px. Inside, top: role label uppercase, weight 700, ≥17px, color `--accent-soft`, letter-spacing .14em, with a short 2px gradient underline (28px wide). Below: the member avatars side by side, centered — circular photos ~104px, border 2px `--border`, name under each photo ≥18px weight 700.
+- **Layout:** Founder box on its own centered top row (same width as one grid box, avatar slightly larger ~120px). Below it, the 5 division boxes in a grid: 3 + 2 on desktop (`grid-template-columns: repeat(3, 1fr)`, last row centered), 2 columns tablet, 1 column mobile. Gap 20–24px. Everything must fit within one 1920×1080 viewport without scrolling — shrink paddings/avatars slightly if needed, never overflow.
+- **Missing photo fallback:** if an image 404s (e.g. `haikal.jpg`, `atila.jpg` may not exist yet), show a circular fallback with the member's first letter, weight 800, on the purple gradient — same size as photos, never a broken image.
+- Cascade: boxes stagger in 100ms apart (existing cascade style).
+- Update the sub text under the title to: `Bukan perusahaan besar. Bukan tim dari luar. Sebelas anak Masisir.`
+
+## 3 — Partner row (`.partner-section` in `#s14`): logos only, fixed spacing
+- **Remove** `images/partners/arnaf.png` from the partner logos (it is a person photo — people never appear in this row).
+- Keep exactly 3 logos: PPMI Mesir, PPMI Kabinet, temantiket — uniform height 52px, `object-fit: contain`, evenly spaced with `display:flex; justify-content:center; gap:56px; align-items:center`.
+- Fix the spacing rhythm: label `TUMBUH & BERKOLABORASI BERSAMA` gets `margin-top:40px` from the team grid and `margin-bottom:20px` to the logos; the closing sentence gets `margin-top:36px`. No cramped stacking.
+
+## 4 — Global spacing & readability pass (all slides)
+- Normalize vertical rhythm on every slide: eyebrow → title gap 12–16px; title → sub gap 18–24px; sub → content block gap 36–44px; between repeated items (cards/rows) 20–24px.
+- Line-height: titles 1.1, body 1.6. Body/card text max-width ~62ch so lines never run wall-to-wall.
+- Grids must be visually aligned (equal card heights per row — use `align-items:stretch` and let cards fill).
+- Check every slide at 1920×1080: nothing may overflow the viewport or touch the 5% safe area. If a slide is tight (especially #s14 and gallery), reduce internal padding first, then font sizes — but never below the videotron minimums (body ≥26px on text slides, card text ≥18px, captions ≥16px).
+
+## 5 — Divider slides (`#s1`, `#s4`): replace number-only titles with real titles
+Keep the divider layout language (centered, minimal, cascade), but replace the giant `01`/`02` numbers as the hero element. New structure per divider: small eyebrow on top (uppercase, weight 700, `--accent-soft`) → **huge gradient title** `clamp(52px,6.5vw,100px)` weight 800 → one support line ≥26px `--muted`.
+- `#s1` (Bab 1): eyebrow `BAB 01 · CERITA KITA` · title `Semua Berawal dari Keresahan.` · line `Cerita di balik lahirnya AIGYPT.`
+- `#s4` (Bab 2): eyebrow `BAB 02 · AIGYPT` · title `Gerakan AI Pertama di Masisir.` · line `Komunitasnya, perjalanannya, dan kelas-kelasnya.`
+- Do NOT change `#s9` (the AINA dramatic reveal) — it already works.
+
+## Acceptance checklist — verify before finishing
+- [ ] #s15: no WhatsApp button, no "Kembali ke awal"; big Instagram block with gradient `@ai.gypt` opens instagram.com/ai.gypt; nav `Gabung →` also points there
+- [ ] #s14: Founder box (Daru, no badge, caption `Founder`) + 5 division boxes exactly as listed; Zaki/Sulthan/Hafidz/Naadir/Rifki gone; sub says `Sebelas anak Masisir.`; haikal/atila show letter-fallback if photos missing; fits one viewport
+- [ ] Partner row: 3 logos only (no person photo), uniform height, even spacing, clean label rhythm
+- [ ] All slides: consistent spacing rhythm, no overflow at 1920×1080, videotron minimum sizes respected
+- [ ] #s1 & #s4 show the new titled dividers; #s9 untouched
+- [ ] Auto-cascade, T/F/R keys, gallery, chat — everything still works exactly as before
