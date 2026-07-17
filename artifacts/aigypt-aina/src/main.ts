@@ -23,10 +23,10 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 // CHAPTER CONFIG
 // ============================================================
 const CHAPTERS = [
-  { start: 0, end: 3, label: 'BAB 1 · CERITA KITA' },
-  { start: 4, end: 8, label: 'BAB 2 · AIGYPT' },
-  { start: 9, end: 13, label: 'BAB 3 · AINA' },
-  { start: 14, end: 15, label: 'BAB 4 · AJAKAN' },
+  { start: 0, end: 2,  label: 'BAB 1 · CERITA KITA' },
+  { start: 3, end: 6,  label: 'BAB 2 · AIGYPT' },
+  { start: 7, end: 11, label: 'BAB 3 · AINA' },
+  { start: 12, end: 13, label: 'BAB 4 · AJAKAN' },
 ];
 
 // Slides where pairs should be revealed together (same keypress)
@@ -101,7 +101,7 @@ function goToSlide(n: number, instant = false) {
   }
 
   // Slide-specific behaviours
-  if (n === 10) setTimeout(playChat, 700);
+  if (n === 8) setTimeout(playChat, 700);
 }
 
 function nextSlide() {
@@ -138,8 +138,8 @@ function revealNextFragment(): boolean {
     fragmentIndex = nextIdx;
   }
 
-  // Slide 14: trigger team stagger when team-grid fragment is revealed
-  if (currentSlide === 14 && nextFrag.id === 'team-grid') {
+  // Slide 12: trigger team stagger when team-grid fragment is revealed
+  if (currentSlide === 12 && nextFrag.id === 'team-grid') {
     staggerTeam();
   }
 
@@ -306,7 +306,7 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
       break;
     case 'r':
     case 'R':
-      if (currentSlide === 10) replayChat();
+      if (currentSlide === 8) replayChat();
       break;
   }
 });
@@ -379,7 +379,7 @@ const slideObserver = new IntersectionObserver((entries) => {
       currentSlide = idx;
       fragmentIndex = isMobile() ? getFragments(SLIDES[idx]).length - 1 : -1;
       updateUI();
-      if (idx === 10) setTimeout(playChat, 600);
+      if (idx === 8) setTimeout(playChat, 600);
     }
   });
 }, {
@@ -399,8 +399,8 @@ if (isMobile() || reducedMotion) {
         const slide = entry.target as HTMLElement;
         getFragments(slide).forEach(f => f.classList.add('revealed'));
         const idx = +(slide.dataset.idx ?? -1);
-        if (idx === 10) setTimeout(playChat, 600);
-        if (idx === 14) staggerTeam();
+        if (idx === 8) setTimeout(playChat, 600);
+        if (idx === 12) staggerTeam();
       }
     });
   }, { threshold: 0.2 });
