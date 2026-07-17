@@ -560,6 +560,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+.aina-logo-block::before {
+  content: '';
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,92,246,.75) 0%, rgba(109,40,217,.35) 40%, transparent 70%);
+  filter: blur(32px);
+  pointer-events: none;
+  z-index: 0;
+}
+.aina-logo-block img,
+.aina-logo-fallback {
+  position: relative;
+  z-index: 1;
 }
 /* Fix #3: AINA logo is the hero — big, centered, slow confident reveal */
 .aina-logo-block img {
