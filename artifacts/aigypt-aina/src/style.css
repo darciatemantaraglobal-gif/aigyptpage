@@ -334,7 +334,15 @@ body {
   line-height: 1.3;
   color: var(--text);
 }
-.jujur-emoji { font-size: clamp(28px, 3vw, 40px); flex-shrink: 0; }
+/* Fix #4: emoji replaced with SVG icons */
+.jujur-icon {
+  flex-shrink: 0;
+  color: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.jujur-icon svg { width: 34px; height: 34px; }
 .jujur-punchline {
   font-size: clamp(18px, 2.2vw, 28px);
   font-weight: 700;
@@ -532,33 +540,47 @@ body {
 .curriculum-note  { font-size: 15px; font-weight: 600; color: var(--muted); }
 
 /* ── SLIDE 9: AINA DRAMATIC REVEAL ──────────────────────── */
-.slide-aina-reveal .slide-content { gap: 24px; }
+.slide-aina-reveal .slide-content { gap: 28px; }
+/* Fix #3: text is secondary opener */
 .aina-dramatic-text {
-  font-size: clamp(36px, 5.5vw, 76px);
-  font-weight: 800;
-  letter-spacing: -.02em;
-  line-height: 1.12;
-  color: var(--text);
+  font-size: clamp(30px, 3vw, 36px);
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.3;
+  color: var(--muted);
 }
 .aina-logo-block {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.aina-logo-block img { height: 90px; width: auto; object-fit: contain; }
+/* Fix #3: AINA logo is the hero — big, centered, slow confident reveal */
+.aina-logo-block img {
+  height: clamp(180px, 18vw, 260px);
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 60px rgba(124,58,237,.45));
+  transform: scale(0.92);
+  transition: transform 700ms cubic-bezier(.22,1,.36,1) 100ms;
+}
+.aina-logo-block.on img {
+  transform: scale(1);
+}
 .aina-logo-fallback {
-  width: 90px; height: 90px;
-  border-radius: 18px;
+  width: 160px; height: 160px;
+  border-radius: 24px;
   background: var(--grad);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
+  font-size: 60px;
   font-weight: 800;
   color: #fff;
+  filter: drop-shadow(0 0 60px rgba(124,58,237,.45));
 }
+/* Fix #3: sub line prominent */
 .aina-reveal-sub {
-  font-size: clamp(16px, 1.8vw, 22px);
+  font-size: clamp(26px, 2.5vw, 32px);
   font-weight: 600;
   color: var(--muted);
 }
@@ -734,7 +756,13 @@ body {
   flex-direction: column;
   gap: 8px;
 }
-.feature-icon  { font-size: 28px; }
+/* Fix #4: SVG icon in feature cards */
+.feature-icon {
+  color: var(--accent-soft);
+  display: flex;
+  align-items: center;
+}
+.feature-icon svg { width: 32px; height: 32px; }
 .feature-label { font-size: 15px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--accent-soft); }
 .feature-card p:last-child { font-size: 15px; font-weight: 500; color: var(--muted); line-height: 1.55; }
 
@@ -759,7 +787,24 @@ body {
   color: var(--text);
   line-height: 1.5;
 }
-.q-emoji { font-size: 26px; flex-shrink: 0; }
+/* Fix #4: SVG icon in question cards */
+.q-icon {
+  flex-shrink: 0;
+  color: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.q-icon svg { width: 30px; height: 30px; }
+/* inline icon (aina-note key) */
+.inline-icon {
+  display: inline;
+  vertical-align: middle;
+  color: var(--accent-soft);
+  margin-right: 4px;
+  position: relative;
+  top: -1px;
+}
 .question-punchline {
   font-size: clamp(22px, 2.8vw, 38px);
   font-weight: 800;
@@ -796,51 +841,43 @@ body {
 }
 
 /* ── SLIDE 14: TIM & PARTNER ─────────────────────────────── */
+/* Fix #5: tighter title block */
+#s14 .slide-eyebrow { margin-bottom: 10px; }
+#s14 .slide-title   { margin-bottom: 12px; }
+
 .team-sub {
   font-size: clamp(15px, 1.6vw, 19px);
   font-weight: 500;
   color: var(--muted);
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   line-height: 1.6;
 }
 #team-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
   margin-bottom: 0;
 }
-.founder-row {
-  display: flex;
-  justify-content: center;
-}
-.founder-box {
-  width: 240px;
-}
-.division-grid {
+/* Fix #5: all 6 boxes in a 3×2 grid; Founder is position 0 */
+.team-box-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 .division-box {
-  grid-column: span 2;
   background: var(--surface);
   border: 2px solid var(--border);
-  border-radius: 18px;
-  padding: 22px 20px 24px;
+  border-radius: 16px;
+  padding: 18px 16px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   opacity: 0;
   transform: translateY(16px);
 }
-.division-box:nth-child(4) { grid-column: 2 / 4; }
-.division-box:nth-child(5) { grid-column: 4 / 6; }
 
 .division-role {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: .14em;
+  letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--accent-soft);
   text-align: center;
@@ -889,7 +926,7 @@ body {
   flex-shrink: 0;
 }
 .division-member-name {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text);
   text-align: center;
@@ -897,7 +934,7 @@ body {
 
 .partner-section {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 24px;
   margin-bottom: 0;
 }
 .partner-label {
@@ -906,16 +943,16 @@ body {
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .partner-logos {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 56px;
+  gap: 44px;
 }
 .partner-logos img {
-  height: 52px;
+  height: 40px;
   width: auto;
   opacity: .85;
   transition: opacity 200ms;
@@ -924,13 +961,13 @@ body {
 .partner-logos img:hover { opacity: 1; }
 
 .team-closing {
-  font-size: clamp(18px, 2.2vw, 30px);
+  font-size: clamp(16px, 1.8vw, 24px);
   font-weight: 800;
   color: var(--text);
   text-align: center;
   line-height: 1.32;
   letter-spacing: -.01em;
-  margin-top: 36px;
+  margin-top: 20px;
 }
 
 /* ── INSTAGRAM BLOCK (slide 15) ─────────────────────────── */
@@ -970,11 +1007,15 @@ body {
   height: 44px;
   flex-shrink: 0;
 }
+/* Fix #7: no clipping, responsive, never truncates */
 .ig-username {
-  font-size: clamp(40px, 5vw, 72px);
+  font-size: clamp(36px, 4.5vw, 64px);
   font-weight: 800;
   letter-spacing: -.02em;
-  line-height: 1;
+  line-height: 1.2;
+  white-space: nowrap;
+  padding: 0.08em 0.1em;
+  /* gradient-text needs overflow visible to avoid descender clipping */
 }
 
 /* ── SLIDE 15: PENUTUP ───────────────────────────────────── */

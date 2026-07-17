@@ -1,0 +1,59 @@
+# PROMPT FIX REPLIT — copy semua di bawah garis ini
+
+---
+
+This is a **FIX round on the existing build.** Only modify `artifacts/aigypt-aina/index.html`, `src/main.ts`, `src/style.css`. Keep the design system, auto-cascade, and videotron rules intact. Make exactly these 7 fixes:
+
+## 1 — Gallery slide: photos must appear INSTANTLY when the slide opens
+Right now the gallery does not show immediately. Fix all causes:
+- Render the gallery grid DOM on page load, not on slide entry.
+- **Preload** all 8 gallery images right after first paint (`new Image().src = ...` for each), and remove `loading="lazy"` from gallery tiles. By the time the presenter reaches this slide, every photo is already in cache.
+- The cascade for gallery tiles starts the moment the slide becomes active with no extra delay (first tile at 0ms, stagger 80ms), and must not wait for image `load` events.
+
+## 2 — Remove EVERY em dash (—) from all visible text
+Site-wide (index.html + strings in main.ts): replace each "—" with a comma or a period, whichever reads naturally, and fix spacing. Examples of the intended style:
+- `Dipelajari — dan langsung kepakai.` → `Dipelajari dan langsung kepakai.`
+- `AI bukan pengganti manusia. AI itu alat — dan kendalinya tetap di tangan kita.` → `AI bukan pengganti manusia. AI itu alat, dan kendalinya tetap di tangan kita.`
+- `Kalau Masisir pernah bingung soal itu — AINA dibuat untuk itu.` → `Kalau Masisir pernah bingung soal itu, AINA dibuat untuk itu.`
+- `Dibawakan oleh Daru — Founder AIGYPT` → `Dibawakan oleh Daru, Founder AIGYPT`
+After this task, searching the project for "—" must return zero results in user-visible text.
+
+## 3 — Slide `#s9` (Dari komunitas ini lahir sebuah karya): the AINA logo is the hero
+Rebalance the slide:
+- Text `Dari komunitas ini, lahir sebuah karya.` becomes the smaller opener: ~30–36px, weight 600, `--muted`, appears first.
+- The **AINA logo becomes the big centerpiece**: height ~220–260px on desktop, centered, appears second with a slow confident fade+scale (0.92→1, 700ms), subtle purple glow behind it (`drop-shadow(0 0 60px rgba(124,58,237,.45))`).
+- Line `Dibuat oleh Masisir, untuk Masisir.` stays below, ≥26px.
+- Keep the letter-fallback rule if the logo file is missing.
+
+## 4 — Replace ALL emojis with simple outline icons
+- Every decorative emoji in cards, rows, and notes (🙋 💬 ✅ 📚 🃏 🗣️ 📰 🛂 ✈️ 🎓 💱 🍲 🔑) is replaced with a **minimal outline SVG icon**: 28–34px, `stroke="currentColor"`, `stroke-width="2"`, `fill="none"`, rounded caps, color `--accent-soft`. Use simple universal glyphs (hand, chat bubble, check-square, book, cards, users, newspaper, id-card, plane, graduation cap, currency, utensils, key). Inline SVG only, no icon library, no external requests.
+- Remove emojis inside chat bubble text (🙌 📋): delete them and smooth the sentence, e.g. `Santai, aku pandu ya 🙌 Siapkan paspor...` → `Santai, aku pandu ya. Siapkan paspor...` and `Checklist meluncur 📋 Kurs terbaru...` → `Checklist meluncur! Kurs terbaru...`
+- After this task there are zero emoji characters anywhere on the site.
+
+## 5 — Team slide `#s14` must fit ONE 1920×1080 screen, no scrolling
+Compact the layout until everything (title → boxes → partner row → closing line) fits a single viewport:
+- Put all 6 boxes in a **3×2 grid** (Founder box is a normal grid item, first position, Daru centered alone inside it with caption `Founder`).
+- Avatars ~80–88px (Daru may be ~96px), box padding 16–20px, grid gap 16px, role label 15–16px, names 16–17px.
+- Title block tighter: eyebrow→title 10px, title→sub 12px, sub→grid 24px.
+- Partner label margin-top 24px, logos height 40px, gap 44px; closing line margin-top 20px, ~24px font.
+- Verify at exactly 1920×1080 fullscreen: zero vertical overflow. If still tight, shrink avatars before anything else.
+
+## 6 — Team photo mapping fix (names stay, photos swap)
+In the team data: member **Haikal** uses photo `images/team/rifki.jpg`; member **Atila** uses photo `images/team/naadir.jpg`. Display names remain `Haikal` and `Atila`. Remove the letter-fallback dependency for these two since the photos now exist. Everything else in the roster stays as is.
+
+## 7 — Fix the Instagram block on `#s15`: nothing may be cut off
+The `@ai.gypt` text is being clipped. Fix:
+- The gradient text uses `background-clip:text` with **no `overflow:hidden`** on any ancestor that clips it; add `padding: 0.08em 0.1em` so descenders (the `y`, `g`, `p`) and the glyph never get cut.
+- Size it responsively: `clamp(36px, 4.5vw, 64px)`, `white-space:nowrap`, and ensure the full row (icon + handle) fits within the safe area at 1920×1080 AND at 1366×768. If it would overflow, it scales down, never truncates.
+- `line-height: 1.2` minimum on the handle so nothing shaves the top/bottom.
+- Keep the label `TERHUBUNG DENGAN KAMI` and the hover glow.
+
+## Acceptance checklist
+- [ ] Gallery photos visible the instant the slide opens (test by jumping straight to it with End/Home navigation)
+- [ ] Project search for "—" finds nothing user-visible; copy reads naturally
+- [ ] #s9: AINA logo is the dominant element, text is secondary
+- [ ] Zero emojis site-wide; all icons are inline outline SVGs in --accent-soft
+- [ ] #s14 fits one 1920×1080 screen with no scroll; 3×2 boxes; Founder is a normal box
+- [ ] Haikal shows rifki.jpg, Atila shows naadir.jpg, names unchanged
+- [ ] #s15 Instagram handle fully visible, no clipping at 1920×1080 and 1366×768
+- [ ] Cascade, T/F/R keys, filters, lightbox, chat all still work

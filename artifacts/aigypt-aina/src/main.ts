@@ -1,5 +1,5 @@
 // ============================================================
-// AIGYPT × AINA — main.ts v6 (Auto-cascade Edition)
+// AIGYPT × AINA — main.ts v7 (Fix Round)
 // ============================================================
 import './style.css';
 
@@ -24,20 +24,22 @@ const GALLERY_PHOTOS = [
   { src: 'images/batch-3-demoday.jpg',   caption: 'Batch 3 · Platform & Demo Day', batch: 'batch-3' },
 ];
 
+// Fix #6: Haikal → rifki.jpg, Atila → naadir.jpg (names unchanged)
 const TEAM_GROUPS: { role: string; members: { file: string; name: string }[] }[] = [
   { role: 'Founder',          members: [ {file:'daru.jpg',   name:'Daru'} ] },
   { role: 'Ketua AINA',       members: [ {file:'maliki.jpg', name:'Maliki'}, {file:'fairuz.jpg', name:'Fairuz'} ] },
-  { role: 'External Lead',    members: [ {file:'ariqq.jpg',  name:'Ariqq'},  {file:'haikal.jpg', name:'Haikal'} ] },
-  { role: 'Assist Developer', members: [ {file:'ilham.jpg',  name:'Ilham'},  {file:'atila.jpg',  name:'Atila'} ] },
+  { role: 'External Lead',    members: [ {file:'ariqq.jpg',  name:'Ariqq'},  {file:'rifki.jpg',  name:'Haikal'} ] },
+  { role: 'Assist Developer', members: [ {file:'ilham.jpg',  name:'Ilham'},  {file:'naadir.jpg', name:'Atila'} ] },
   { role: 'Administrasi',     members: [ {file:'okto.jpg',   name:'Okto'},   {file:'azriel.jpg', name:'Azriel'} ] },
   { role: 'Media',            members: [ {file:'arnaf.png',  name:'Arnaf'},  {file:'navis.jpg',  name:'Navis'} ] },
 ];
 
+// Fix #4: remove emojis from chat messages; fix em dash
 const CHAT_MESSAGES = [
   { role: 'user', text: 'AINA, cara urus iqomah pertama kali gimana ya?' },
-  { role: 'aina', text: 'Santai, aku pandu ya 🙌 Siapkan paspor, foto, dan formulir dari kampus. Mau aku buatin checklist urutannya?' },
+  { role: 'aina', text: 'Santai, aku pandu ya. Siapkan paspor, foto, dan formulir dari kampus. Mau aku buatin checklist urutannya?' },
   { role: 'user', text: 'Mau banget! Kurs EGP ke Rupiah hari ini berapa?' },
-  { role: 'aina', text: 'Checklist meluncur 📋 Kurs terbaru aku ambilkan sekalian. Bingung soal dokumen? Foto aja — kita urus bareng.' },
+  { role: 'aina', text: 'Checklist meluncur! Kurs terbaru aku ambilkan sekalian. Bingung soal dokumen? Foto aja, kita urus bareng.' },
 ];
 
 // ── STATE ─────────────────────────────────────────────────────
@@ -78,7 +80,6 @@ const chatBody      = document.getElementById('chat-body')!;
 const teamGrid      = document.getElementById('team-grid')!;
 const slidesContainer = document.getElementById('slides-container')!;
 const nav           = document.getElementById('main-nav')!;
-const btnRestart    = document.getElementById('btn-restart');
 
 // ── UTILITIES ─────────────────────────────────────────────────
 function clamp(n: number, min: number, max: number) {
@@ -153,6 +154,7 @@ function handleTrigger(el: HTMLElement, slide: HTMLElement, instant: boolean) {
 }
 
 // ── GALLERY ────────────────────────────────────────────────────
+// Fix #1: render DOM (no lazy loading), don't re-render on slide entry
 function renderGallery(filter: string, animate = true) {
   const photos = filter === 'all' ? GALLERY_PHOTOS : GALLERY_PHOTOS.filter(p => p.batch === filter);
   galleryGrid.innerHTML = '';
@@ -167,7 +169,7 @@ function renderGallery(filter: string, animate = true) {
     const img = document.createElement('img');
     img.src = photo.src;
     img.alt = photo.caption;
-    img.loading = 'lazy';
+    // No loading="lazy" — images are preloaded at init
 
     const caption = document.createElement('figcaption');
     caption.textContent = photo.caption;
@@ -181,7 +183,7 @@ function renderGallery(filter: string, animate = true) {
     figure.addEventListener('click', openLb);
     figure.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLb(); } });
 
-    // Stagger cascade for gallery tiles
+    // Stagger cascade for gallery tiles — first tile at 0ms, stagger 80ms
     if (animate && !reducedMotion && !isMobile()) {
       figure.style.opacity = '0';
       figure.style.transform = 'scale(0.95)';
@@ -189,7 +191,7 @@ function renderGallery(filter: string, animate = true) {
         figure.style.transition = 'opacity 350ms ease, transform 350ms ease';
         figure.style.opacity = '1';
         figure.style.transform = 'scale(1)';
-      }, i * 80 + 50);
+      }, i * 80);
       activeCascadeTimers.push(t);
     }
   });
@@ -233,7 +235,8 @@ function replayChat() {
   playCascade(SLIDES[10]);
 }
 
-// ── TEAM STAGGER ───────────────────────────────────────────────
+// ── TEAM GRID ──────────────────────────────────────────────────
+// Fix #5: all 6 boxes in a 3×2 flat grid; Founder is normal item at position 0
 function buildDivisionBox(group: { role: string; members: { file: string; name: string }[] }, isFounder: boolean): HTMLElement {
   const box = document.createElement('div');
   box.className = `division-box${isFounder ? ' founder-box' : ''}`;
@@ -251,12 +254,12 @@ function buildDivisionBox(group: { role: string; members: { file: string; name: 
   group.members.forEach(member => {
     const memberEl = document.createElement('div');
     memberEl.className = 'division-member';
-    const avatarSize = isFounder ? 120 : 104;
+    // Fix #5: Founder 96px, others 84px
+    const avatarSize = isFounder ? 96 : 84;
 
     const img = document.createElement('img');
     img.src = `images/team/${member.file}`;
     img.alt = member.name;
-    img.loading = 'lazy';
     img.className = 'division-avatar-img';
     img.style.width = `${avatarSize}px`;
     img.style.height = `${avatarSize}px`;
@@ -289,23 +292,12 @@ function buildDivisionBox(group: { role: string; members: { file: string; name: 
 
 function buildTeamGrid() {
   teamGrid.innerHTML = '';
-
+  const grid = document.createElement('div');
+  grid.className = 'team-box-grid';
   TEAM_GROUPS.forEach((group, i) => {
-    if (i === 0) {
-      const founderRow = document.createElement('div');
-      founderRow.className = 'founder-row';
-      founderRow.appendChild(buildDivisionBox(group, true));
-      teamGrid.appendChild(founderRow);
-    } else {
-      let divGrid = teamGrid.querySelector<HTMLElement>('.division-grid');
-      if (!divGrid) {
-        divGrid = document.createElement('div');
-        divGrid.className = 'division-grid';
-        teamGrid.appendChild(divGrid);
-      }
-      divGrid.appendChild(buildDivisionBox(group, false));
-    }
+    grid.appendChild(buildDivisionBox(group, i === 0));
   });
+  teamGrid.appendChild(grid);
 }
 
 function staggerTeam() {
@@ -337,10 +329,8 @@ function goToSlide(n: number, replay = false) {
 
   updateUI();
 
-  // Reset gallery tiles opacity (no cascade pending)
-  if (currentSlide === 7) {
-    renderGallery(galleryFilter, !reducedMotion && !isMobile());
-  }
+  // Fix #1: gallery DOM rendered on init; no re-render on slide entry.
+  // Only re-render when filter changes (handled by filter click listener).
 
   // Play cascade
   playCascade(SLIDES[currentSlide], reducedMotion || isMobile());
@@ -495,14 +485,12 @@ dotsContainer.querySelectorAll<HTMLButtonElement>('.dot').forEach(dot => {
   });
 });
 
-// btn-restart removed (replaced by Instagram CTA)
-
 // Scroll-based nav hairline
 slidesContainer.addEventListener('scroll', () => {
   nav.classList.toggle('scrolled', slidesContainer.scrollTop > 10);
 });
 
-// ── GALLERY ───────────────────────────────────────────────────
+// ── GALLERY FILTERS ───────────────────────────────────────────
 filterBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     filterBtns.forEach(b => b.classList.remove('active'));
@@ -561,7 +549,7 @@ const slideObserver = new IntersectionObserver((entries) => {
     currentSlide = idx;
     updateUI();
     if (!isMobile()) playCascade(SLIDES[idx]);
-    if (idx === 7 && !isMobile()) renderGallery(galleryFilter, true);
+    // Fix #1: gallery DOM already rendered at init; no re-render on scroll
   });
 }, {
   root: isMobile() ? null : slidesContainer,
@@ -578,7 +566,7 @@ if (isMobile()) {
         const slide = entry.target as HTMLElement;
         slide.querySelectorAll<HTMLElement>('.ci').forEach(el => el.classList.add('on'));
         const idx = +(slide.dataset.idx ?? -1);
-        if (idx === 7) renderGallery('all', false);
+        // Fix #1: gallery already rendered at init; no re-render needed
         if (idx === 10) {
           chatBody.innerHTML = '';
           CHAT_MESSAGES.forEach(m => {
@@ -604,7 +592,14 @@ if (isMobile()) {
 
 // ── INIT ──────────────────────────────────────────────────────
 buildTeamGrid();
+
+// Fix #1: render gallery DOM on page load (animate=false → tiles immediately visible)
 renderGallery('all', false);
+
+// Fix #1: preload all gallery images right after first paint
+requestAnimationFrame(() => {
+  GALLERY_PHOTOS.forEach(p => { const img = new Image(); img.src = p.src; });
+});
 
 // Kick off cascade for slide 0
 updateUI();
