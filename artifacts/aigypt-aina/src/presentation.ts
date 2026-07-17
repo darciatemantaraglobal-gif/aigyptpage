@@ -1,95 +1,130 @@
 /**
- * AIGYPT × AINA — Presentation engine v2 (auto-reveal)
- * Slides animate in automatically on enter. Keyboard navigates slide-to-slide.
+ * AIGYPT × AINA — Presentation engine v4
+ * Keyboard-driven fragment reveals, chapter system, gallery lightbox, AINA chat.
  */
+
+// ─── Chapter map ──────────────────────────────────────────
+const CHAPTER_LABELS: Record<number, string> = {
+  0: 'BAB 1 · CERITA KITA', 1: 'BAB 1 · CERITA KITA',
+  2: 'BAB 1 · CERITA KITA', 3: 'BAB 1 · CERITA KITA',
+  4: 'BAB 2 · AIGYPT',      5: 'BAB 2 · AIGYPT',
+  6: 'BAB 2 · AIGYPT',      7: 'BAB 2 · AIGYPT',
+  8: 'BAB 2 · AIGYPT',
+  9:  'BAB 3 · AINA',       10: 'BAB 3 · AINA',
+  11: 'BAB 3 · AINA',       12: 'BAB 3 · AINA',
+  13: 'BAB 3 · AINA',
+  14: 'BAB 4 · AJAKAN',
+};
+const AINA_SLIDE = 10;
 
 // ─── State ────────────────────────────────────────────────
 let currentSlide = 0;
-let timerVisible = false;
-let timerStarted = false;
-let timerStart = 0;
+let timerVisible = false, timerStarted = false, timerStart = 0;
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 let chatPlayed = false;
 let chatTimeouts: ReturnType<typeof setTimeout>[] = [];
+let lightboxOpen = false;
+let lightboxItems: Element[] = [];
+let lightboxIndex = 0;
 
-// ─── DOM refs ─────────────────────────────────────────────
-const nav         = document.getElementById('main-nav') as HTMLElement;
-const progressBar = document.getElementById('progress-bar') as HTMLElement;
-const timerEl     = document.getElementById('timer') as HTMLElement;
-const dotsNav     = document.getElementById('dots') as HTMLElement;
-const dots        = Array.from(dotsNav.querySelectorAll<HTMLButtonElement>('.dot'));
-const slides      = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
-const TOTAL       = slides.length;
-const AINA_SLIDE  = 8; // 0-indexed
+// ─── DOM ──────────────────────────────────────────────────
+const nav          = document.getElementById('main-nav')!;
+const progressBar  = document.getElementById('progress-bar')!;
+const chapterLabel = document.getElementById('chapter-label')!;
+const timerEl      = document.getElementById('timer')!;
+const allDots      = Array.from(document.querySelectorAll<HTMLButtonElement>('.dot'));
+const slides       = Array.from(document.querySelectorAll<HTMLElement>('.slide'));
+const TOTAL        = slides.length;
 
-// ─── Assign stagger delays to all .fragment inside a slide ─
-function assignDelays(slideEl: HTMLElement) {
-  const frags = slideEl.querySelectorAll<HTMLElement>('.fragment');
-  frags.forEach((f, i) => {
-    f.style.setProperty('--frag-delay', `${120 + i * 110}ms`);
-  });
-}
+// ─── Fragment tracking ────────────────────────────────────
+// Collect .fragment and .fragment-group in DOM order per slide.
+const slideFragments: Element[][] = slides.map(s =>
+  Array.from(s.querySelectorAll<Element>('.fragment, .fragment-group'))
+);
+const fragmentState: number[] = slides.map(() => 0);
 
 // ─── Nav scrolled ─────────────────────────────────────────
-function handleScroll() {
-  nav.classList.toggle('scrolled', window.scrollY > 20);
-}
+function handleScroll() { nav.classList.toggle('scrolled', window.scrollY > 20); }
 window.addEventListener('scroll', handleScroll, { passive: true });
 
-// ─── Progress + dots ──────────────────────────────────────
+// ─── UI update ────────────────────────────────────────────
 function updateUI() {
   const pct = TOTAL <= 1 ? 100 : (currentSlide / (TOTAL - 1)) * 100;
   progressBar.style.width = `${pct}%`;
-  dots.forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
+  allDots.forEach(d => d.classList.toggle('active', +d.dataset.slide! === currentSlide));
+  chapterLabel.textContent = CHAPTER_LABELS[currentSlide] ?? '';
 }
 
-// ─── Go to slide ──────────────────────────────────────────
-function goToSlide(idx: number) {
+// ─── Slide navigation ─────────────────────────────────────
+function goToSlide(idx: number, revealAll = false) {
   if (idx < 0 || idx >= TOTAL) return;
   currentSlide = idx;
+  if (revealAll) showAllFragments(idx);
   slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
   updateUI();
+  if (idx === AINA_SLIDE && !chatPlayed) scheduleChat();
+}
+
+// ─── Fragments ────────────────────────────────────────────
+function revealNextFragment(slideIdx: number): boolean {
+  const frags = slideFragments[slideIdx];
+  const n = fragmentState[slideIdx];
+  if (n < frags.length) {
+    frags[n].classList.add('revealed');
+    fragmentState[slideIdx]++;
+    return true;
+  }
+  return false;
+}
+
+function showAllFragments(slideIdx: number) {
+  slideFragments[slideIdx].forEach(f => f.classList.add('revealed'));
+  fragmentState[slideIdx] = slideFragments[slideIdx].length;
+}
+
+function hideAllFragments(slideIdx: number) {
+  slideFragments[slideIdx].forEach(f => f.classList.remove('revealed'));
+  fragmentState[slideIdx] = 0;
 }
 
 // ─── Advance / Back ───────────────────────────────────────
 function advance() {
   ensureTimerStarted();
-  if (currentSlide < TOTAL - 1) goToSlide(currentSlide + 1);
+  if (!revealNextFragment(currentSlide) && currentSlide < TOTAL - 1) {
+    goToSlide(currentSlide + 1);
+  }
 }
 
 function goBack() {
   ensureTimerStarted();
-  if (currentSlide > 0) goToSlide(currentSlide - 1);
+  if (currentSlide > 0) {
+    hideAllFragments(currentSlide);
+    goToSlide(currentSlide - 1, true);
+  }
 }
 
 // ─── Timer ────────────────────────────────────────────────
 function ensureTimerStarted() {
   if (!timerStarted) {
-    timerStarted = true;
-    timerStart = Date.now();
-    timerInterval = setInterval(tickTimer, 1000);
-    tickTimer();
+    timerStarted = true; timerStart = Date.now();
+    timerInterval = setInterval(tickTimer, 1000); tickTimer();
   }
 }
-
 function tickTimer() {
-  const elapsed = Math.floor((Date.now() - timerStart) / 1000);
-  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
-  const ss = String(elapsed % 60).padStart(2, '0');
-  timerEl.textContent = `${mm}:${ss} / 30:00`;
-  timerEl.classList.remove('amber', 'red');
-  if (elapsed >= 1800) timerEl.classList.add('red');
-  else if (elapsed >= 1500) timerEl.classList.add('amber');
+  const e = Math.floor((Date.now() - timerStart) / 1000);
+  timerEl.textContent = `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')} / 30:00`;
+  timerEl.classList.remove('amber','red');
+  if (e >= 1800) timerEl.classList.add('red');
+  else if (e >= 1500) timerEl.classList.add('amber');
 }
-
 function toggleTimer() {
   timerVisible = !timerVisible;
   timerEl.style.display = timerVisible ? 'block' : 'none';
   if (timerVisible) ensureTimerStarted();
 }
 
-// ─── AINA chat animation ───────────────────────────────────
-const chatBubbles = {
+// ─── AINA chat ────────────────────────────────────────────
+const cb = {
   u1: document.getElementById('bubble-u1'),
   t1: document.getElementById('typing-1'),
   a1: document.getElementById('bubble-a1'),
@@ -97,116 +132,198 @@ const chatBubbles = {
   t2: document.getElementById('typing-2'),
   a2: document.getElementById('bubble-a2'),
 };
-
-function resetChat() {
-  Object.values(chatBubbles).forEach(el => el?.classList.remove('show'));
-}
-function clearChatTimeouts() {
-  chatTimeouts.forEach(t => clearTimeout(t));
-  chatTimeouts = [];
-}
+function resetChat() { Object.values(cb).forEach(el => el?.classList.remove('show')); }
+function clearChatTimeouts() { chatTimeouts.forEach(clearTimeout); chatTimeouts = []; }
 function scheduleChat() {
-  chatPlayed = true;
-  clearChatTimeouts();
-  resetChat();
-  const seq: Array<() => void> = [
-    () => chatBubbles.u1?.classList.add('show'),
-    () => chatBubbles.t1?.classList.add('show'),
-    () => { chatBubbles.t1?.classList.remove('show'); chatBubbles.a1?.classList.add('show'); },
-    () => chatBubbles.u2?.classList.add('show'),
-    () => chatBubbles.t2?.classList.add('show'),
-    () => { chatBubbles.t2?.classList.remove('show'); chatBubbles.a2?.classList.add('show'); },
+  chatPlayed = true; clearChatTimeouts(); resetChat();
+  const seq = [
+    () => cb.u1?.classList.add('show'),
+    () => cb.t1?.classList.add('show'),
+    () => { cb.t1?.classList.remove('show'); cb.a1?.classList.add('show'); },
+    () => cb.u2?.classList.add('show'),
+    () => cb.t2?.classList.add('show'),
+    () => { cb.t2?.classList.remove('show'); cb.a2?.classList.add('show'); },
   ];
-  const delays = [500, 900, 900, 700, 900, 900];
+  const delays = [500,900,900,700,900,900];
   let elapsed = 0;
-  seq.forEach((fn, i) => {
-    elapsed += delays[i];
-    chatTimeouts.push(setTimeout(fn, elapsed));
-  });
+  seq.forEach((fn, i) => { elapsed += delays[i]; chatTimeouts.push(setTimeout(fn, elapsed)); });
 }
-function replayChat() {
-  chatPlayed = false;
-  clearChatTimeouts();
-  resetChat();
-  scheduleChat();
+function replayChat() { chatPlayed = false; clearChatTimeouts(); resetChat(); scheduleChat(); }
+
+// ─── Gallery filter ───────────────────────────────────────
+const galleryItems = Array.from(document.querySelectorAll<HTMLElement>('.gallery-item'));
+let visibleItems: HTMLElement[] = [...galleryItems];
+let filterTimeouts: ReturnType<typeof setTimeout>[] = [];
+
+function applyFilter(filter: string) {
+  document.querySelectorAll('.gallery-chip').forEach(c =>
+    c.classList.toggle('active', (c as HTMLElement).dataset.filter === filter)
+  );
+  filterTimeouts.forEach(clearTimeout); filterTimeouts = [];
+
+  galleryItems.forEach(item => {
+    const match = filter === 'all' || item.dataset.batch === filter;
+    if (!match) {
+      item.classList.add('hidden');
+      filterTimeouts.push(setTimeout(() => item.classList.add('gone'), 260));
+    } else {
+      item.classList.remove('gone');
+      requestAnimationFrame(() => requestAnimationFrame(() => item.classList.remove('hidden')));
+    }
+  });
+
+  visibleItems = galleryItems.filter(item => filter === 'all' || item.dataset.batch === filter);
 }
 
-// ─── Keyboard handler ─────────────────────────────────────
+document.querySelectorAll<HTMLButtonElement>('.gallery-chip').forEach(chip => {
+  chip.addEventListener('click', () => applyFilter(chip.dataset.filter ?? 'all'));
+});
+
+// ─── Lightbox ─────────────────────────────────────────────
+const lightboxEl   = document.getElementById('lightbox')!;
+const lightboxImg  = document.getElementById('lightbox-img') as HTMLImageElement;
+const lightboxCap  = document.getElementById('lightbox-caption')!;
+const lightboxCtr  = document.getElementById('lightbox-counter')!;
+
+function openLightbox(item: HTMLElement) {
+  const img = item.querySelector('img') as HTMLImageElement;
+  const cap = item.querySelector('.gallery-caption')?.textContent ?? '';
+  lightboxIndex = visibleItems.indexOf(item);
+  lightboxImg.src = img.src;
+  lightboxImg.alt = img.alt;
+  lightboxCap.textContent = cap;
+  lightboxCtr.textContent = `${lightboxIndex + 1} / ${visibleItems.length}`;
+  lightboxEl.classList.add('open');
+  lightboxOpen = true;
+  document.body.style.overflow = 'hidden';
+  document.getElementById('lightbox-close')?.focus();
+}
+
+function closeLightbox() {
+  lightboxEl.classList.remove('open');
+  lightboxOpen = false;
+  document.body.style.overflow = '';
+}
+
+function lightboxNav(dir: 1 | -1) {
+  lightboxIndex = (lightboxIndex + dir + visibleItems.length) % visibleItems.length;
+  const item = visibleItems[lightboxIndex] as HTMLElement;
+  const img = item.querySelector('img') as HTMLImageElement;
+  const cap = item.querySelector('.gallery-caption')?.textContent ?? '';
+  lightboxImg.style.opacity = '0';
+  setTimeout(() => {
+    lightboxImg.src = img.src;
+    lightboxImg.alt = img.alt;
+    lightboxImg.style.opacity = '1';
+    lightboxCap.textContent = cap;
+    lightboxCtr.textContent = `${lightboxIndex + 1} / ${visibleItems.length}`;
+  }, 160);
+}
+
+galleryItems.forEach(item => {
+  const open = () => { if (!item.classList.contains('hidden') && !item.classList.contains('gone')) openLightbox(item); };
+  item.addEventListener('click', open);
+  item.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+});
+
+document.getElementById('lightbox-close')!.addEventListener('click', closeLightbox);
+document.getElementById('lightbox-prev')!.addEventListener('click', () => lightboxNav(-1));
+document.getElementById('lightbox-next')!.addEventListener('click', () => lightboxNav(1));
+lightboxEl.addEventListener('click', (e) => { if (e.target === lightboxEl) closeLightbox(); });
+
+// Swipe
+let touchStartX = 0;
+lightboxEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+lightboxEl.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) lightboxNav(dx < 0 ? 1 : -1);
+});
+
+// ─── Keyboard ─────────────────────────────────────────────
 window.addEventListener('keydown', (e: KeyboardEvent) => {
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+  if (['INPUT','TEXTAREA','SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
+  if (lightboxOpen) {
+    switch (e.code) {
+      case 'Escape': e.preventDefault(); closeLightbox(); break;
+      case 'ArrowLeft': case 'ArrowUp': e.preventDefault(); lightboxNav(-1); break;
+      case 'ArrowRight': case 'ArrowDown': e.preventDefault(); lightboxNav(1); break;
+    }
+    return;
+  }
+
   switch (e.code) {
     case 'Space': case 'ArrowDown': case 'ArrowRight': case 'PageDown':
       e.preventDefault(); advance(); break;
     case 'ArrowUp': case 'ArrowLeft': case 'PageUp':
       e.preventDefault(); goBack(); break;
     case 'Home':
-      e.preventDefault(); goToSlide(0); break;
+      e.preventDefault();
+      slides.forEach((_, i) => hideAllFragments(i));
+      currentSlide = 0;
+      slides[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      updateUI(); break;
     case 'End':
-      e.preventDefault(); goToSlide(TOTAL - 1); break;
+      e.preventDefault();
+      currentSlide = TOTAL - 1;
+      showAllFragments(currentSlide);
+      slides[currentSlide].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      updateUI(); break;
     case 'KeyF':
       e.preventDefault();
       if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
       else document.exitFullscreen?.().catch(() => {});
       break;
-    case 'KeyT':
-      e.preventDefault(); toggleTimer(); break;
-    case 'KeyR':
-      e.preventDefault();
-      if (currentSlide === AINA_SLIDE) replayChat();
-      break;
+    case 'KeyT': e.preventDefault(); toggleTimer(); break;
+    case 'KeyR': e.preventDefault(); if (currentSlide === AINA_SLIDE) replayChat(); break;
   }
 });
 
-// ─── Click on slide → advance to next ─────────────────────
+// ─── Click on slide to advance ────────────────────────────
 slides.forEach((slide, idx) => {
   slide.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('a, button')) return;
-    if (idx === currentSlide) advance();
+    if ((e.target as HTMLElement).closest('a, button, .gallery-item, [role="button"]')) return;
+    if (idx === currentSlide && !lightboxOpen) advance();
   });
 });
 
 // ─── Dot clicks ───────────────────────────────────────────
-dots.forEach((dot, i) => {
-  dot.addEventListener('click', () => goToSlide(i));
+allDots.forEach(dot => {
+  dot.addEventListener('click', () => {
+    const idx = +dot.dataset.slide!;
+    if (idx > currentSlide) for (let j = currentSlide; j < idx; j++) showAllFragments(j);
+    goToSlide(idx);
+  });
 });
 
 // ─── Nav link clicks ──────────────────────────────────────
 document.querySelectorAll<HTMLElement>('[data-goto]').forEach(el => {
-  el.addEventListener('click', (e) => {
-    const idx = parseInt(el.dataset.goto ?? '0', 10);
-    if (!isNaN(idx)) { e.preventDefault(); goToSlide(idx); }
+  el.addEventListener('click', e => {
+    const idx = parseInt(el.dataset.goto!, 10);
+    if (!isNaN(idx)) {
+      e.preventDefault();
+      if (idx > currentSlide) for (let j = currentSlide; j < idx; j++) showAllFragments(j);
+      goToSlide(idx);
+    }
   });
 });
 
-// ─── IntersectionObserver — auto-reveal on enter ──────────
-const observer = new IntersectionObserver((entries) => {
+// ─── IntersectionObserver ─────────────────────────────────
+const observer = new IntersectionObserver(entries => {
   entries.forEach(entry => {
-    const slideEl = entry.target as HTMLElement;
-    const idx = slides.indexOf(slideEl);
     if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-      currentSlide = idx;
-      updateUI();
-      // Assign stagger delays then add in-view (triggers CSS animation)
-      assignDelays(slideEl);
-      slideEl.classList.add('in-view');
-      if (idx === AINA_SLIDE && !chatPlayed) scheduleChat();
-    } else {
-      // Remove so animations replay on re-entry
-      slideEl.classList.remove('in-view');
-      if (idx === AINA_SLIDE) {
-        clearChatTimeouts();
-        resetChat();
-        chatPlayed = false;
+      const idx = slides.indexOf(entry.target as HTMLElement);
+      if (idx !== -1 && idx !== currentSlide) {
+        currentSlide = idx; updateUI();
+        if (idx === AINA_SLIDE && !chatPlayed) scheduleChat();
       }
     }
   });
 }, { threshold: 0.5 });
 
-slides.forEach(slide => observer.observe(slide));
+slides.forEach(s => observer.observe(s));
 
 // ─── Init ─────────────────────────────────────────────────
+applyFilter('all');
 updateUI();
 handleScroll();
-// Fire hero slide immediately (it's already in view on load)
-assignDelays(slides[0]);
-slides[0].classList.add('in-view');
