@@ -547,7 +547,7 @@ body {
 .curriculum-note  { font-size: 15px; font-weight: 600; color: var(--muted); }
 
 /* ── SLIDE 9: AINA DRAMATIC REVEAL ──────────────────────── */
-.slide-aina-reveal .slide-content { gap: 28px; }
+.slide-aina-reveal .slide-content { gap: 56px; }
 /* Fix #3: text is secondary opener */
 .aina-dramatic-text {
   font-size: clamp(30px, 3vw, 36px);
