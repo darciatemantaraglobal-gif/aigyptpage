@@ -247,7 +247,7 @@ function buildTeamGrid() {
     const div = document.createElement('div');
     div.className = 'team-avatar';
 
-    const imgSize = member.founder ? 155 : 130;
+    const imgSize = member.founder ? 120 : 96;
     const wrap = document.createElement('div');
     wrap.className = `avatar-img-wrap${member.founder ? ' founder' : ''}`;
     wrap.style.width = `${imgSize}px`;
