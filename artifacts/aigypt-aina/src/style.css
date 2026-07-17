@@ -558,8 +558,10 @@ body {
 }
 .aina-logo-block {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   position: relative;
 }
 .aina-logo-block::before {
@@ -602,6 +604,27 @@ body {
   color: #fff;
   filter: drop-shadow(0 0 60px rgba(124,58,237,.45));
 }
+.aina-logo-wordmark {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(52px, 7vw, 88px);
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: #fff;
+  line-height: 1;
+  filter: drop-shadow(0 0 32px rgba(124,58,237,.6));
+}
+.aina-logo-tagline {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(10px, 1.1vw, 13px);
+  font-weight: 600;
+  letter-spacing: .22em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
 /* Fix #3: sub line prominent */
 .aina-reveal-sub {
   font-size: clamp(26px, 2.5vw, 32px);
