@@ -1,6 +1,6 @@
-# [Project name]
+# AIGYPT × AINA — Presentation
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Interactive presentation website + AI assistant platform for AIGYPT, a community teaching AI skills to Indonesian students in Egypt (Masisir). Built as a 30-minute live talk with 16 keyboard-driven slides across 4 chapters, and a landing page for AINA (AI assistant for Masisir).
 
 ## Run & Operate
 
